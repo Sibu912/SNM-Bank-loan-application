@@ -102,6 +102,12 @@ public class LoanApplication {
         this.referenceNumber = referenceNumber;
     }
 
+    /** Changes the status. The service checks the rules before calling this. */
+    public void moveTo(ApplicationStatus newStatus) {
+        this.status = newStatus;
+        this.updatedAt = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+    }
+
     public Long getId() {
         return id;
     }
