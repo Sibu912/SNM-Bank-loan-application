@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SNM Bank Loan Service - SOAP contract (v1)
+  Contract-first: this file is written first, and the Java classes are generated from it.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="https://sibu912.github.io/snm-bank/loans/v1"
+           targetNamespace="https://sibu912.github.io/snm-bank/loans/v1"
+           elementFormDefault="qualified">
+
+    <!-- ===== Operation 1: submit a loan application ===== -->
+    <xs:element name="SubmitLoanApplicationRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicant" type="tns:Applicant"/>
+                <xs:element name="loan" type="tns:LoanDetails"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="SubmitLoanApplicationResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="referenceNumber" type="tns:ReferenceNumber"/>
+                <xs:element name="status" type="tns:ApplicationStatus"/>
+                <xs:element name="affordabilityResult" type="tns:AffordabilityResult"/>
+                <xs:element name="estimatedMonthlyRepayment" type="tns:Money"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- ===== Operation 2: check the status of an application ===== -->
+    <xs:element name="GetApplicationStatusRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="referenceNumber" type="tns:ReferenceNumber"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="GetApplicationStatusResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="referenceNumber" type="tns:ReferenceNumber"/>
+                <xs:element name="status" type="tns:ApplicationStatus"/>
+                <xs:element name="lastUpdated" type="xs:dateTime"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- ===== Complex types ===== -->
+    <xs:complexType name="Applicant">
+        <xs:sequence>
+            <xs:element name="title" type="tns:Title"/>
+            <xs:element name="givenName" type="tns:Name"/>
+            <xs:element name="surname" type="tns:Name"/>
+            <xs:element name="gender" type="tns:Gender"/>
+            <xs:element name="address" type="tns:Address"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="Address">
+        <xs:sequence>
+            <xs:element name="street" type="tns:Text150"/>
+            <xs:element name="suburb" type="tns:Name"/>
+            <xs:element name="province" type="tns:Province"/>
+            <xs:element name="postalCode" type="tns:PostalCode"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="LoanDetails">
+        <xs:sequence>
+            <xs:element name="purpose" type="tns:LoanPurpose"/>
+            <xs:element name="amountBand" type="tns:LoanAmountBand"/>
+            <xs:element name="termYears" type="tns:TermYears"/>
+            <xs:element name="incomeBand" type="tns:IncomeBand"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- ===== Simple types (validation rules live here) ===== -->
+    <xs:simpleType name="Name">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="1"/>
+            <xs:maxLength value="100"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Text150">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="1"/>
+            <xs:maxLength value="150"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Province">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="1"/>
+            <xs:maxLength value="50"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="PostalCode">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{4}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="ReferenceNumber">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="SNM-[0-9]{4}-[0-9]{6}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Money">
+        <xs:restriction base="xs:decimal">
+            <xs:fractionDigits value="2"/>
+            <xs:minInclusive value="0"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="TermYears">
+        <xs:restriction base="xs:int">
+            <xs:enumeration value="5"/>
+            <xs:enumeration value="10"/>
+            <xs:enumeration value="15"/>
+            <xs:enumeration value="20"/>
+            <xs:enumeration value="25"/>
+            <xs:enumeration value="30"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Title">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="MR"/>
+            <xs:enumeration value="MRS"/>
+            <xs:enumeration value="MISS"/>
+            <xs:enumeration value="MS"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Gender">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="MALE"/>
+            <xs:enumeration value="FEMALE"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="LoanPurpose">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="VEHICLE"/>
+            <xs:enumeration value="PROPERTY"/>
+            <xs:enumeration value="INVESTMENT"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="LoanAmountBand">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="LESS_THAN_250K"/>
+            <xs:enumeration value="FROM_250K_TO_499K"/>
+            <xs:enumeration value="FROM_500K_TO_999K"/>
+            <xs:enumeration value="ONE_MILLION_PLUS"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="IncomeBand">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="LESS_THAN_50K"/>
+            <xs:enumeration value="FROM_50K_TO_99K"/>
+            <xs:enumeration value="FROM_100K_TO_149K"/>
+            <xs:enumeration value="FROM_150K_PLUS"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="ApplicationStatus">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="SUBMITTED"/>
+            <xs:enumeration value="UNDER_REVIEW"/>
+            <xs:enumeration value="APPROVED"/>
+            <xs:enumeration value="DECLINED"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="AffordabilityResult">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="PASS"/>
+            <xs:enumeration value="FAIL"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+</xs:schema>
