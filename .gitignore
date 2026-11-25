@@ -1,0 +1,31 @@
+# ---- Java / Maven ----
+target/
+*.class
+*.log
+hs_err_pid*
+
+# ---- IDEs ----
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+
+# ---- Node / Angular ----
+node_modules/
+dist/
+.angular/
+coverage/
+
+# ---- Secrets and local settings (never commit these) ----
+.env
+*.env
+application-local.yml
+application-local.properties
+
+# ---- OS ----
+Thumbs.db
+desktop.ini
+.DS_Store
