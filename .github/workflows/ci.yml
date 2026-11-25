@@ -8,8 +8,25 @@ on:
 
 jobs:
   backend:
-    name: Backend (Java 21, Maven)
+    name: Backend (Java 21, Maven, PostgreSQL)
     runs-on: ubuntu-latest
+    # A throwaway PostgreSQL for the tests (same version as on the PC)
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: snm_app
+          POSTGRES_PASSWORD: ci-test-password
+          POSTGRES_DB: snm_loans_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U snm_app -d snm_loans_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DB_PASSWORD: ci-test-password
     defaults:
       run:
         working-directory: backend

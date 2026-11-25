@@ -31,10 +31,11 @@ Open **SQL Shell (psql)** or pgAdmin's query tool as the `postgres` user and run
 
 ```sql
 CREATE USER snm_app WITH PASSWORD 'choose-a-password';
-CREATE DATABASE snm_loans OWNER snm_app;
+CREATE DATABASE snm_loans OWNER snm_app;       -- used by the app
+CREATE DATABASE snm_loans_test OWNER snm_app;  -- used by the automated tests
 ```
 
-You don't need to create any tables. **Flyway** creates them when the backend starts.
+You don't need to create any tables. **Flyway** creates them when the backend (or a test) starts.
 
 ## 4. Run the backend
 
@@ -90,16 +91,19 @@ Invoke-RestMethod http://localhost:8080/api/applications
 
 ## 7. Run the tests
 
+PostgreSQL must be running, and `DB_PASSWORD` must be set in the same window (step 4).
+
 ```powershell
 cd backend
-.\mvnw.cmd verify                 # 54 tests
+$env:DB_PASSWORD = "choose-a-password"
+.\mvnw.cmd verify
 
 cd ..\frontend
 npm install
 npm test -- --watch=false         # 15 tests
 ```
 
-Backend tests use an in-memory **H2** database (`application-test.yml`), so PostgreSQL doesn't need to be running. GitHub Actions runs the same commands on every push (`.github/workflows/ci.yml`).
+Backend tests use the **`snm_loans_test`** database (`src/test/resources/application-test.yml`), never your real `snm_loans` data. Tests that save data empty the loan tables first (`clean-loan-tables.sql`). GitHub Actions starts its own PostgreSQL 16 and runs the same commands on every push (`.github/workflows/ci.yml`).
 
 ## 8. Use the loan form with the backend
 
@@ -128,6 +132,7 @@ Open `http://localhost:4200`. You'll see the list of applications. Click a refer
 | Problem | Fix |
 |---------|-----|
 | `password authentication failed for user "snm_app"` | `DB_PASSWORD` isn't set in **this** PowerShell window, or it doesn't match the password from step 3 |
+| Tests fail with `database "snm_loans_test" does not exist` | Create it (step 3) |
 | `Connection refused` on port 5432 | PostgreSQL isn't running. Start it in **Services** (`postgresql-x64-16`). |
 | `Schema-validation: missing table` | Flyway didn't run. Check that the migration is in `src/main/resources/db/migration` and its name starts with `V1__` (two underscores). |
 | `Validate failed: Migration checksum mismatch` | A migration that already ran was edited. Undo the edit and put the change in a new `V2__` file. |

@@ -49,7 +49,7 @@ flowchart LR
 | Area | Technology |
 |------|------------|
 | Backend | Java 21, Spring Boot, Spring Web, Spring Web Services (SOAP), Bean Validation |
-| Data | Spring Data JPA / Hibernate, PostgreSQL 16, Flyway migrations, H2 for tests |
+| Data | Spring Data JPA / Hibernate, PostgreSQL 16 (a separate `snm_loans_test` database for tests), Flyway migrations |
 | Contracts | JSON over REST · XSD + JAXB for SOAP (contract-first) |
 | Testing | JUnit 5, Mockito, MockMvc, Spring-WS test support |
 | Frontend | HTML/CSS/JavaScript form (GitHub Pages) · Angular admin screen |
@@ -111,7 +111,7 @@ backend/src/main/resources/
 |-------|------|----------|
 | `backend` | Unit tests: affordability maths, status rules, service with Mockito mocks | 26 |
 | `backend` | Web layer: every endpoint, validation errors, CORS (`@WebMvcTest` + MockMvc) | 14 |
-| `backend` | Database: Flyway + JPA mappings + repositories on H2 (`@DataJpaTest`) | 4 |
+| `backend` | Database: Flyway + JPA mappings + repositories on PostgreSQL (`@DataJpaTest`) | 4 |
 | `backend` | End to end: REST flow, SOAP via `MockWebServiceClient`, SOAP and WSDL over real HTTP | 10 |
 | `frontend` | API service and both pages (Vitest + `HttpTestingController`) | 15 |
 

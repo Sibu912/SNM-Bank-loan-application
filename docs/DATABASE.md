@@ -1,6 +1,6 @@
 # Database – SNM Bank Loan Service
 
-- **Database:** PostgreSQL 16 (H2 in PostgreSQL mode for tests)
+- **Database:** PostgreSQL 16: `snm_loans` for the app and `snm_loans_test` for the automated tests
 - **Schema changes:** Flyway scripts in `backend/src/main/resources/db/migration/`
 - **Hibernate:** `spring.jpa.hibernate.ddl-auto=validate`. Hibernate checks that the entities match the tables but never changes them.
 
@@ -85,7 +85,7 @@ The first row for each application has `from_status = NULL` and `to_status = SUB
 ## Migration V1
 
 File: `backend/src/main/resources/db/migration/V1__create_loan_tables.sql`
-(This script has been run against PostgreSQL 16.)
+(This script has been run against PostgreSQL 16. Its first comment still mentions H2, which the tests used at first. It isn't edited because Flyway would see a changed checksum.)
 
 ```sql
 -- V1__create_loan_tables.sql

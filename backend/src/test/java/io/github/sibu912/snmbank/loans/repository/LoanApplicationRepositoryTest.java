@@ -19,6 +19,7 @@ import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabas
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -27,12 +28,14 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Runs against H2 (profile "test"). Flyway creates the tables from
- * V1__create_loan_tables.sql, and Hibernate checks the entities match them.
+ * Runs against the PostgreSQL test database (profile "test"). Flyway creates the tables
+ * from the migration scripts, and Hibernate checks the entities match them.
+ * Each test runs in a transaction that is rolled back afterwards.
  */
 @DataJpaTest
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Sql("/clean-loan-tables.sql")
 class LoanApplicationRepositoryTest {
 
     @Autowired

@@ -16,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.ws.test.server.MockWebServiceClient;
 import org.springframework.xml.transform.StringSource;
 
@@ -30,11 +31,12 @@ import static org.springframework.ws.test.server.ResponseMatchers.validPayload;
 import static org.springframework.ws.test.server.ResponseMatchers.xpath;
 
 /**
- * Sends SOAP payloads through Spring-WS (validation, endpoint, service, H2 database)
+ * Sends SOAP payloads through Spring-WS (validation, endpoint, service, PostgreSQL)
  * without starting a web server.
  */
 @SpringBootTest
 @ActiveProfiles("test")
+@Sql("/clean-loan-tables.sql")
 class LoanApplicationEndpointTest {
 
     private static final Map<String, String> NAMESPACES = Map.of("loan", WebServiceConfig.NAMESPACE);
