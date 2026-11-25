@@ -66,7 +66,6 @@ describe('LoanApplicationApi', () => {
       .changeStatus('SNM-2026-000001', {
         status: 'UNDER_REVIEW',
         note: 'Payslips received',
-        changedBy: 'reviewer.thandi',
       })
       .subscribe();
 
@@ -75,7 +74,6 @@ describe('LoanApplicationApi', () => {
     expect(request.request.body).toEqual({
       status: 'UNDER_REVIEW',
       note: 'Payslips received',
-      changedBy: 'reviewer.thandi',
     });
     request.flush(detail({ status: 'UNDER_REVIEW' }));
   });

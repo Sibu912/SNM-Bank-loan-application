@@ -12,6 +12,8 @@ It started as a two-page web form. It now has a **Java backend**, a **SOAP inter
 
 ---
 
+![Reviewer login](docs/images/admin-login.jpg)
+
 ## What it does
 
 | Who | What they do |
@@ -53,7 +55,7 @@ flowchart LR
 | Data | Spring Data JPA / Hibernate, PostgreSQL 16 (a separate `snm_loans_test` database for tests), Flyway migrations |
 | Contracts | JSON over REST · XSD + JAXB for SOAP (contract-first) |
 | Testing | JUnit 5, Mockito, MockMvc, Spring-WS test support |
-| Frontend | HTML/CSS/JavaScript form (GitHub Pages) · Angular admin screen |
+| Frontend | HTML/CSS/JavaScript form (GitHub Pages) · Angular admin screen with login (signals, route guard, HTTP interceptor) and a sci-fi theme |
 | CI | GitHub Actions: builds and tests the backend and the frontend on every push |
 
 ## Repository layout
@@ -114,12 +116,18 @@ backend/src/main/resources/
 | Where | What | How many |
 |-------|------|----------|
 | `backend` | Unit tests: affordability maths, status rules, service with Mockito mocks | 26 |
-| `backend` | Web layer: every endpoint, validation errors, CORS (`@WebMvcTest` + MockMvc) | 14 |
-| `backend` | Database: Flyway + JPA mappings + repositories on PostgreSQL (`@DataJpaTest`) | 4 |
-| `backend` | End to end: REST flow, SOAP via `MockWebServiceClient`, SOAP and WSDL over real HTTP | 10 |
-| `frontend` | API service and both pages (Vitest + `HttpTestingController`) | 15 |
+| `backend` | Web layer: every endpoint, validation errors, security rules, CORS (`@WebMvcTest` + MockMvc) | 15 |
+| `backend` | Database: Flyway + JPA mappings + repositories on PostgreSQL (`@DataJpaTest`) | 6 |
+| `backend` | End to end: login and tokens, REST flow, SOAP via `MockWebServiceClient`, SOAP and WSDL over real HTTP | 18 |
+| `frontend` | Login, auth service, token interceptor, route guard, API service and pages (Vitest) | 31 |
 
 Run them with `.\mvnw.cmd verify` in `backend` and `npm test -- --watch=false` in `frontend`.
+
+## Screenshots
+
+| Applications | One application |
+|---|---|
+| ![Applications list](docs/images/admin-applications.jpg) | ![Application detail](docs/images/admin-application-detail.jpg) |
 
 ## Running it locally
 
@@ -135,7 +143,7 @@ $env:DB_PASSWORD = "your-db-password"
 # 3. In a second window, start the admin screen
 cd frontend
 npm install
-npm start          # http://localhost:4200
+npm start          # http://localhost:4200, log in as thandi / Reviewer#2026
 ```
 
 ## Roadmap

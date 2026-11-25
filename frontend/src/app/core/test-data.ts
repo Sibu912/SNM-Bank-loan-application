@@ -1,5 +1,11 @@
 // Sample API responses for the unit tests.
-import { ApplicationDetail, ApplicationSummary, HistoryEntry, PageResponse } from './models';
+import {
+  ApplicationDetail,
+  ApplicationSummary,
+  HistoryEntry,
+  LoginResponse,
+  PageResponse,
+} from './models';
 
 export const SUMMARY: ApplicationSummary = {
   referenceNumber: 'SNM-2026-000001',
@@ -57,3 +63,18 @@ export const HISTORY: HistoryEntry[] = [
     changedAt: '2026-11-25T18:30:00',
   },
 ];
+
+export function loginResponse(overrides: Partial<LoginResponse> = {}): LoginResponse {
+  return {
+    token: 'test-token',
+    username: 'thandi',
+    displayName: 'Thandi Mokoena',
+    expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // in one hour
+    ...overrides,
+  };
+}
+
+/** Pretend a reviewer logged in earlier (Auth reads this when it is created). */
+export function storeSession(session: LoginResponse = loginResponse()): void {
+  sessionStorage.setItem('snm_admin_session', JSON.stringify(session));
+}

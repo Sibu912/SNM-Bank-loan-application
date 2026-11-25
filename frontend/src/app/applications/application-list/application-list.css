@@ -3,7 +3,7 @@
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .toolbar h2 {
@@ -13,9 +13,16 @@
 .filter {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: #555;
+  gap: 10px;
+  color: var(--cyan);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.table-wrap {
+  overflow-x: auto;
 }
 
 table {
@@ -26,25 +33,61 @@ table {
 
 th,
 td {
+  padding: 12px 10px;
   text-align: left;
-  padding: 10px 8px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid rgba(0, 150, 255, 0.15);
 }
 
 th {
-  color: #777;
-  font-weight: 600;
+  color: var(--cyan);
+  font-family: var(--font-tech);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  border-bottom-color: rgba(0, 229, 255, 0.45);
+}
+
+tbody tr {
+  transition: background 0.2s ease;
+}
+
+tbody tr:hover {
+  background: rgba(0, 229, 255, 0.06);
+  box-shadow: inset 3px 0 0 var(--cyan);
+}
+
+.reference {
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-decoration: none;
+  text-shadow: 0 0 6px rgba(0, 229, 255, 0.5);
+}
+
+.reference:hover {
+  color: #fff;
+}
+
+.date {
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
 }
 
 .paging {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 16px;
-  font-size: 14px;
-  color: #555;
+  gap: 12px;
+  margin-top: 20px;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .empty {
-  color: #777;
+  color: var(--muted);
+  font-family: var(--font-tech);
+  font-size: 11px;
+  letter-spacing: 1.5px;
 }

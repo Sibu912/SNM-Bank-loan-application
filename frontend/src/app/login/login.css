@@ -1,0 +1,459 @@
+/* Sci-fi login, styled after the reference loginPage.html. Shared colours live in styles.css. */
+:host {
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.back-link {
+  position: fixed;
+  top: 30px;
+  left: 30px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: 1px solid var(--cyan);
+  background: rgba(0, 150, 255, 0.05);
+  clip-path: var(--cut-small);
+  color: var(--cyan);
+  font-family: var(--font-tech);
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-decoration: none;
+  backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+}
+
+.back-link:hover {
+  background: var(--cyan);
+  color: #00050a;
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.5);
+  transform: translateX(-5px);
+}
+
+.page-container {
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 120px;
+  width: 100%;
+  max-width: 1200px;
+  padding: 20px;
+  transform: scale(0.85);
+}
+
+/* ---------- Animated emblem: three neon rings around an "SNM" core ---------- */
+.logo-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 350px;
+}
+
+.emblem {
+  position: relative;
+  width: 260px;
+  height: 260px;
+  perspective: 900px;
+  transform-style: preserve-3d;
+}
+
+.ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 3px solid;
+}
+
+.ring-outer {
+  inset: 0;
+  border-color: var(--cyan);
+  box-shadow:
+    0 0 18px var(--cyan),
+    inset 0 0 18px rgba(0, 229, 255, 0.6);
+  animation: orbit-a 7s linear infinite;
+}
+
+.ring-middle {
+  inset: 24px;
+  border-style: dashed;
+  border-color: var(--magenta);
+  box-shadow: 0 0 14px var(--magenta);
+  animation: orbit-b 5s linear infinite;
+}
+
+.ring-inner {
+  inset: 50px;
+  border-color: var(--green);
+  box-shadow:
+    0 0 14px var(--green),
+    inset 0 0 10px rgba(0, 255, 136, 0.5);
+  animation: orbit-c 9s linear infinite;
+}
+
+.core {
+  position: absolute;
+  inset: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245, 130, 32, 0.35), rgba(5, 10, 16, 0.2) 70%);
+  color: var(--brand);
+  font-family: var(--font-display);
+  font-size: 26px;
+  letter-spacing: 3px;
+  text-shadow: 0 0 12px rgba(245, 130, 32, 0.9);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes orbit-a {
+  from {
+    transform: rotateX(70deg) rotateZ(0deg);
+  }
+  to {
+    transform: rotateX(70deg) rotateZ(360deg);
+  }
+}
+
+@keyframes orbit-b {
+  from {
+    transform: rotateY(65deg) rotateZ(0deg);
+  }
+  to {
+    transform: rotateY(65deg) rotateZ(-360deg);
+  }
+}
+
+@keyframes orbit-c {
+  from {
+    transform: rotateX(-50deg) rotateY(30deg) rotateZ(0deg);
+  }
+  to {
+    transform: rotateX(-50deg) rotateY(30deg) rotateZ(360deg);
+  }
+}
+
+@keyframes pulse {
+  50% {
+    text-shadow: 0 0 24px rgba(245, 130, 32, 1);
+    transform: scale(1.06);
+  }
+}
+
+.emblem-text {
+  margin-top: 24px;
+  margin-right: -14px;
+  color: var(--cyan);
+  font-family: var(--font-display);
+  font-size: 30px;
+  letter-spacing: 14px;
+  text-shadow: 0 0 15px rgba(0, 229, 255, 0.5);
+}
+
+.link-arrow {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-top: 18px;
+}
+
+.link-node {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #e6f5fa;
+  box-shadow:
+    0 0 10px var(--cyan),
+    0 0 20px var(--cyan);
+}
+
+.link-line {
+  position: relative;
+  flex-grow: 1;
+  height: 2px;
+  overflow: hidden;
+  background: rgba(0, 150, 255, 0.2);
+}
+
+.link-line::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -30px;
+  width: 30px;
+  height: 100%;
+  background: var(--cyan);
+  box-shadow:
+    0 0 10px var(--cyan),
+    0 0 20px #fff;
+  animation: electric-pulse 1.5s linear infinite;
+}
+
+@keyframes electric-pulse {
+  0% {
+    left: -30px;
+    opacity: 0;
+  }
+  10%,
+  90% {
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+.link-head {
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 10px solid #e6f5fa;
+  filter: drop-shadow(0 0 5px var(--cyan));
+}
+
+/* ---------- Login panel ---------- */
+.ui-wrapper {
+  position: relative;
+  width: 440px;
+}
+
+.accent {
+  position: absolute;
+  z-index: 15;
+  width: 15px;
+  height: 35px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(10, 15, 30, 0.6);
+  backdrop-filter: blur(10px);
+}
+
+.accent-left-1,
+.accent-left-2,
+.accent-left-3 {
+  left: -10px;
+  clip-path: polygon(100% 0, 100% 100%, 0 85%, 0 15%);
+}
+
+.accent-right-1,
+.accent-right-2,
+.accent-right-3 {
+  right: -10px;
+  clip-path: polygon(0 0, 0 100%, 100% 85%, 100% 15%);
+}
+
+.accent-left-1 {
+  top: 60px;
+}
+.accent-left-2 {
+  top: 105px;
+}
+.accent-left-3 {
+  top: 150px;
+}
+.accent-right-1 {
+  bottom: 60px;
+}
+.accent-right-2 {
+  bottom: 105px;
+}
+.accent-right-3 {
+  bottom: 150px;
+}
+
+.panel-border {
+  position: relative; /* grows with its content */
+  z-index: 10;
+  padding: 2px;
+  overflow: hidden;
+  background: rgba(0, 150, 255, 0.1);
+  clip-path: var(--cut-large);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+}
+
+.panel-border::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  z-index: -1;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(from 0deg, transparent 70%, var(--cyan) 80%, var(--magenta) 100%);
+  animation: spin-border 3s linear infinite;
+}
+
+@keyframes spin-border {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.panel-inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 580px;
+  padding: 40px;
+  background: #003e91; /* solid, so the spinning border only shows around the edge */
+  clip-path: var(--cut-large);
+}
+
+.panel-logo {
+  margin-bottom: 40px;
+  color: var(--green);
+  font-family: var(--font-display);
+  font-size: 30px;
+  letter-spacing: 12px;
+  text-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+}
+
+.header-content h1 {
+  margin: 0 0 8px;
+  color: var(--magenta);
+  font-family: var(--font-display);
+  font-size: 22px;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+}
+
+.header-content p {
+  margin: 0 0 30px;
+  color: #a9b6c6;
+  font-size: 13px;
+}
+
+.form-group {
+  margin-bottom: 22px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--cyan);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.form-group input {
+  width: 100%;
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  display: flex;
+  padding: 4px;
+  border: none;
+  background: none;
+  color: rgba(0, 150, 255, 0.5);
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.toggle-password.active,
+.toggle-password:hover {
+  color: var(--cyan);
+  filter: drop-shadow(0 0 3px var(--cyan));
+}
+
+.toggle-password svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.submit-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 16px;
+}
+
+.notice,
+.login-error {
+  margin: 0 0 18px;
+  padding: 10px 14px;
+  font-family: var(--font-tech);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+}
+
+.notice {
+  border-left: 3px solid var(--cyan);
+  background: rgba(0, 229, 255, 0.08);
+  color: var(--cyan);
+}
+
+.login-error {
+  border-left: 3px solid var(--magenta);
+  background: rgba(255, 0, 128, 0.12);
+  color: #ff7ad9;
+  text-shadow: 0 0 6px rgba(255, 0, 255, 0.5);
+}
+
+.hint {
+  margin: 22px 0 0;
+  color: #8c96a3;
+  font-size: 12px;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  :host {
+    overflow-y: auto;
+  }
+  .back-link {
+    top: 15px;
+    left: 15px;
+    padding: 8px 16px;
+    font-size: 11px;
+  }
+  .page-container {
+    flex-direction: column;
+    gap: 30px;
+    padding: 100px 16px 40px;
+    transform: none;
+  }
+  .logo-section {
+    width: 100%;
+    max-width: 300px;
+  }
+  .emblem {
+    width: 200px;
+    height: 200px;
+  }
+  .core {
+    inset: 68px;
+    font-size: 20px;
+  }
+  .link-arrow {
+    width: 110px;
+    transform: rotate(90deg);
+    margin: 75px auto 55px;
+  }
+  .ui-wrapper {
+    width: 100%;
+    max-width: 440px;
+  }
+}
+
+@media (max-width: 480px) {
+  .panel-inner {
+    padding: 30px 20px;
+  }
+}

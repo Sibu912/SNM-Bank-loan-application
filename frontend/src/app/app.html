@@ -1,10 +1,25 @@
-<header class="top-bar">
-  <a routerLink="/applications" class="brand">
-    <span class="logo">SNM Bank</span>
-    <span class="subtitle">Loan applications · Admin</span>
-  </a>
-</header>
+@if (auth.user(); as user) {
+  <div class="bg-rays" aria-hidden="true"></div>
 
-<main class="content">
+  <header class="top-bar">
+    <a routerLink="/applications" class="brand">
+      <span class="logo">SNM BANK</span>
+      <span class="subtitle">Loan control // Admin</span>
+    </a>
+
+    <div class="session">
+      <span class="signed-in">
+        <span class="status-dot" aria-hidden="true"></span>
+        {{ user.displayName }}
+      </span>
+      <button type="button" class="secondary" (click)="auth.logout()">Log out</button>
+    </div>
+  </header>
+
+  <main class="content">
+    <router-outlet />
+  </main>
+} @else {
+  <!-- Not logged in: only the login page is shown -->
   <router-outlet />
-</main>
+}

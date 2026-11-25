@@ -1,119 +1,289 @@
-/* Shared styles. The orange matches the loan form (#f58220). */
+/* Fonts come from npm (@fontsource), so the app works offline and doesn't call Google */
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/orbitron/700.css';
+@import '@fontsource/orbitron/900.css';
+@import '@fontsource/syncopate/700.css';
+
+/*
+ * SNM Bank admin - sci-fi theme.
+ * Dark navy background, neon cyan / magenta / green accents and cut-corner panels,
+ * with the SNM orange kept for the brand name.
+ */
+:root {
+  --bg: #050a10;
+  --navy: #0a1f3c;
+  --panel: rgba(4, 22, 48, 0.82);
+  --panel-strong: rgba(0, 62, 145, 0.9);
+  --cyan: #00e5ff;
+  --blue: #0096ff;
+  --magenta: #ff00ff;
+  --green: #00ff88;
+  --amber: #ffb020;
+  --red: #ff3d71;
+  --brand: #f58220;
+  --text: #dbe7f3;
+  --muted: #8c96a3;
+
+  --font-text: 'Inter', -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-display: 'Orbitron', 'Segoe UI', sans-serif;
+  --font-tech: 'Syncopate', 'Segoe UI', sans-serif;
+
+  --cut-small: polygon(
+    12px 0,
+    100% 0,
+    100% calc(100% - 12px),
+    calc(100% - 12px) 100%,
+    0 100%,
+    0 12px
+  );
+  --cut-input: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+  --cut-panel: polygon(
+    0 0,
+    calc(100% - 28px) 0,
+    100% 28px,
+    100% 100%,
+    28px 100%,
+    0 calc(100% - 28px)
+  );
+  --cut-large: polygon(
+    0 0,
+    calc(100% - 60px) 0,
+    100% 60px,
+    100% 100%,
+    60px 100%,
+    0 calc(100% - 60px)
+  );
+}
+
 * {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background: #f0f0f0;
-  color: #333;
+  min-height: 100vh;
+  color: var(--text);
+  font-family: var(--font-text);
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(circle at 30% 60%, rgba(0, 150, 255, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 70% 30%, rgba(0, 150, 255, 0.15) 0%, transparent 40%),
+    conic-gradient(
+      from 180deg at 50% 50%,
+      #050a10 0deg,
+      #0a1f3c 45deg,
+      #050a10 90deg,
+      #0c2a52 135deg,
+      #050a10 180deg,
+      #081e3a 225deg,
+      #050a10 270deg,
+      #0a2649 315deg,
+      #050a10 360deg
+    );
+  background-attachment: fixed;
+}
+
+/* Soft light rays behind everything */
+.bg-rays {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(45deg, transparent 40%, rgba(0, 180, 255, 0.1) 45%, transparent 50%),
+    linear-gradient(-45deg, transparent 30%, rgba(0, 180, 255, 0.15) 35%, transparent 40%),
+    linear-gradient(15deg, transparent 60%, rgba(0, 150, 255, 0.08) 65%, transparent 70%);
+  filter: blur(8px);
 }
 
 a {
-  color: #f58220;
+  color: var(--cyan);
 }
 
 h2,
 h3 {
-  color: #333;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+h2 {
+  color: var(--magenta);
+  font-size: 20px;
+  text-shadow: 0 0 10px rgba(255, 0, 255, 0.45);
 }
 
 h3 {
   margin-top: 0;
-}
-
-.card {
-  background: #fff;
-  border-radius: 8px;
-  padding: 20px 24px;
-  margin-bottom: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-}
-
-button {
-  background: #f58220;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 18px;
+  color: var(--cyan);
   font-size: 14px;
-  font-weight: 600;
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+}
+
+/* ---------- Panels ---------- */
+.card {
+  position: relative;
+  margin-bottom: 24px;
+  padding: 24px 28px;
+  background: var(--panel);
+  border-left: 3px solid var(--blue);
+  clip-path: var(--cut-panel);
+  backdrop-filter: blur(18px);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 150, 255, 0.25),
+    0 20px 40px rgba(0, 0, 0, 0.45);
+}
+
+/* ---------- Buttons ---------- */
+button {
+  padding: 11px 20px;
+  border: 1px solid var(--cyan);
+  background: rgba(0, 150, 255, 0.06);
+  color: var(--cyan);
+  clip-path: var(--cut-small);
+  font-family: var(--font-tech);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
   cursor: pointer;
+  transition: all 0.25s ease;
 }
 
 button:hover:not(:disabled) {
-  background: #e67310;
+  background: var(--cyan);
+  color: #00050a;
+  box-shadow: 0 0 22px rgba(0, 229, 255, 0.5);
+  transform: translateY(-1px);
 }
 
 button:disabled {
-  opacity: 0.5;
+  opacity: 0.35;
   cursor: default;
 }
 
 button.secondary {
-  background: #f5f5f5;
-  color: #555;
+  border-color: rgba(0, 150, 255, 0.45);
+  color: #7fc8ff;
 }
 
-button.secondary:hover:not(:disabled) {
-  background: #e8e8e8;
+/* Status buttons on the detail page: Approve is green, Decline is red */
+button.action-APPROVED {
+  border-color: var(--green);
+  color: var(--green);
 }
 
+button.action-APPROVED:hover:not(:disabled) {
+  background: var(--green);
+  color: #00050a;
+  box-shadow: 0 0 22px rgba(0, 255, 136, 0.5);
+}
+
+button.action-DECLINED {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+button.action-DECLINED:hover:not(:disabled) {
+  background: var(--red);
+  color: #00050a;
+  box-shadow: 0 0 22px rgba(255, 61, 113, 0.5);
+}
+
+/* ---------- Form fields ---------- */
 input,
 select {
-  padding: 8px 10px;
-  border: 2px solid #ddd;
-  border-radius: 8px;
+  padding: 12px 14px;
+  border: 1px solid rgba(0, 150, 255, 0.25);
+  border-left: 3px solid var(--blue);
+  background: rgba(4, 15, 30, 0.7);
+  color: var(--cyan);
+  clip-path: var(--cut-input);
+  font-family: var(--font-text);
   font-size: 14px;
-  font-family: inherit;
+  outline: none;
+  transition: all 0.25s ease;
+}
+
+input::placeholder {
+  color: rgba(0, 150, 255, 0.4);
+  font-style: italic;
 }
 
 input:focus,
 select:focus {
-  outline: none;
-  border-color: #f58220;
+  border-color: var(--cyan);
+  background: rgba(0, 30, 60, 0.85);
+  box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.2);
 }
 
+select option {
+  background: #061428;
+  color: var(--text);
+}
+
+/* ---------- Badges ---------- */
 .badge {
   display: inline-block;
-  padding: 2px 10px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
+  padding: 3px 10px;
+  border: 1px solid currentColor;
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  font-family: var(--font-tech);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .status-SUBMITTED {
-  background: #e8f0fe;
-  color: #1a56c4;
+  color: var(--cyan);
+  background: rgba(0, 229, 255, 0.08);
 }
 
 .status-UNDER_REVIEW {
-  background: #fff4e5;
-  color: #b25e00;
+  color: var(--amber);
+  background: rgba(255, 176, 32, 0.08);
 }
 
 .status-APPROVED,
 .affordability-PASS {
-  background: #e6f4ea;
-  color: #1e7e34;
+  color: var(--green);
+  background: rgba(0, 255, 136, 0.08);
 }
 
 .status-DECLINED,
 .affordability-FAIL {
-  background: #fdecea;
-  color: #a12a1e;
+  color: var(--red);
+  background: rgba(255, 61, 113, 0.08);
+}
+
+/* ---------- Messages ---------- */
+.error,
+.success {
+  padding: 10px 14px;
+  font-family: var(--font-tech);
+  font-size: 11px;
+  letter-spacing: 1px;
 }
 
 .error {
-  background: #fdecea;
-  border-left: 4px solid #e74c3c;
-  color: #a12a1e;
-  padding: 10px 14px;
-  border-radius: 0 8px 8px 0;
+  border-left: 3px solid var(--magenta);
+  background: rgba(255, 0, 128, 0.12);
+  color: #ff7ad9;
 }
 
 .success {
-  color: #1e7e34;
+  border-left: 3px solid var(--green);
+  background: rgba(0, 255, 136, 0.08);
+  color: var(--green);
+}
+
+/* Respect the "reduce motion" setting: no spinning or pulsing */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }

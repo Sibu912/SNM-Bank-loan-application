@@ -1,5 +1,24 @@
 // Friendly text for the codes the API uses, matching the labels on the loan form.
-import { ApplicationStatus, IncomeBand, LoanAmountBand, LoanPurpose } from './models';
+import {
+  ApplicationStatus,
+  Gender,
+  IncomeBand,
+  LoanAmountBand,
+  LoanPurpose,
+  Title,
+} from './models';
+
+export const TITLE_LABELS: Record<Title, string> = {
+  MR: 'Mr',
+  MRS: 'Mrs',
+  MISS: 'Miss',
+  MS: 'Ms',
+};
+
+export const GENDER_LABELS: Record<Gender, string> = {
+  MALE: 'Male',
+  FEMALE: 'Female',
+};
 
 export const STATUS_LABELS: Record<ApplicationStatus, string> = {
   SUBMITTED: 'Submitted',

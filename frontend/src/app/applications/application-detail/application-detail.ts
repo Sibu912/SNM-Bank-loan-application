@@ -1,13 +1,16 @@
 import { DatePipe, DecimalPipe, LowerCasePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Auth } from '../../core/auth';
 import { errorMessage } from '../../core/error-message';
 import {
   AMOUNT_LABELS,
+  GENDER_LABELS,
   INCOME_LABELS,
   PURPOSE_LABELS,
   STATUS_ACTIONS,
   STATUS_LABELS,
+  TITLE_LABELS,
 } from '../../core/labels';
 import { LoanApplicationApi } from '../../core/loan-application-api';
 import {
@@ -19,6 +22,7 @@ import {
 
 /**
  * One application: its details, its history, and buttons to move it to the next status.
+ * The backend records the logged-in reviewer as the person who made each change.
  */
 @Component({
   selector: 'app-application-detail',
@@ -28,6 +32,7 @@ import {
 })
 export class ApplicationDetail implements OnInit {
   private readonly api = inject(LoanApplicationApi);
+  protected readonly auth = inject(Auth);
 
   /** Filled from the URL /applications/:ref (withComponentInputBinding in app.config.ts). */
   readonly ref = input.required<string>();
@@ -37,11 +42,12 @@ export class ApplicationDetail implements OnInit {
   protected readonly purposeLabels = PURPOSE_LABELS;
   protected readonly amountLabels = AMOUNT_LABELS;
   protected readonly incomeLabels = INCOME_LABELS;
+  protected readonly titleLabels = TITLE_LABELS;
+  protected readonly genderLabels = GENDER_LABELS;
 
   protected readonly application = signal<Detail | null>(null);
   protected readonly history = signal<HistoryEntry[]>([]);
   protected readonly note = signal('');
-  protected readonly changedBy = signal('');
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly message = signal<string | null>(null);
@@ -66,26 +72,20 @@ export class ApplicationDetail implements OnInit {
     this.error.set(null);
     this.message.set(null);
 
-    this.api
-      .changeStatus(this.ref(), {
-        status,
-        note: this.note().trim() || null,
-        changedBy: this.changedBy().trim(),
-      })
-      .subscribe({
-        next: (application) => {
-          this.application.set(application);
-          this.note.set('');
-          this.saving.set(false);
-          this.message.set(`Status changed to ${STATUS_LABELS[application.status]}.`);
-          this.loadHistory();
-        },
-        error: (error) => {
-          // For example a 409 "Cannot change status from SUBMITTED to APPROVED"
-          this.error.set(errorMessage(error));
-          this.saving.set(false);
-        },
-      });
+    this.api.changeStatus(this.ref(), { status, note: this.note().trim() || null }).subscribe({
+      next: (application) => {
+        this.application.set(application);
+        this.note.set('');
+        this.saving.set(false);
+        this.message.set(`STATUS CHANGED TO ${STATUS_LABELS[application.status].toUpperCase()}`);
+        this.loadHistory();
+      },
+      error: (error) => {
+        // For example a 409 "Cannot change status from SUBMITTED to APPROVED"
+        this.error.set(errorMessage(error));
+        this.saving.set(false);
+      },
+    });
   }
 
   private load(): void {

@@ -23,44 +23,48 @@
     @if (page.content.length === 0) {
       <p class="empty">No applications found.</p>
     } @else {
-      <table>
-        <thead>
-          <tr>
-            <th>Reference</th>
-            <th>Applicant</th>
-            <th>Purpose</th>
-            <th>Amount</th>
-            <th>Affordability</th>
-            <th>Status</th>
-            <th>Submitted</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (application of page.content; track application.referenceNumber) {
+      <div class="table-wrap">
+        <table>
+          <thead>
             <tr>
-              <td>
-                <a [routerLink]="['/applications', application.referenceNumber]">{{
-                  application.referenceNumber
-                }}</a>
-              </td>
-              <td>{{ application.applicantName }}</td>
-              <td>{{ purposeLabels[application.loanPurpose] }}</td>
-              <td>{{ amountLabels[application.loanAmountBand] }}</td>
-              <td>
-                <span class="badge" [class]="'affordability-' + application.affordabilityResult">
-                  {{ application.affordabilityResult }}
-                </span>
-              </td>
-              <td>
-                <span class="badge" [class]="'status-' + application.status">{{
-                  statusLabels[application.status]
-                }}</span>
-              </td>
-              <td>{{ application.createdAt | date: 'd MMM y, HH:mm' }}</td>
+              <th>Reference</th>
+              <th>Applicant</th>
+              <th>Purpose</th>
+              <th>Amount</th>
+              <th>Affordability</th>
+              <th>Status</th>
+              <th>Submitted</th>
             </tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (application of page.content; track application.referenceNumber) {
+              <tr>
+                <td>
+                  <a
+                    class="reference"
+                    [routerLink]="['/applications', application.referenceNumber]"
+                    >{{ application.referenceNumber }}</a
+                  >
+                </td>
+                <td>{{ application.applicantName }}</td>
+                <td>{{ purposeLabels[application.loanPurpose] }}</td>
+                <td>{{ amountLabels[application.loanAmountBand] }}</td>
+                <td>
+                  <span class="badge" [class]="'affordability-' + application.affordabilityResult">
+                    {{ application.affordabilityResult }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge" [class]="'status-' + application.status">{{
+                    statusLabels[application.status]
+                  }}</span>
+                </td>
+                <td class="date">{{ application.createdAt | date: 'd MMM y, HH:mm' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
 
       <div class="paging">
         <button
@@ -88,6 +92,6 @@
       </div>
     }
   } @else if (loading()) {
-    <p class="empty">Loading…</p>
+    <p class="empty">Loading data stream…</p>
   }
 </section>

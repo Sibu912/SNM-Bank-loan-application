@@ -9,41 +9,52 @@
     <div class="heading">
       <h2>{{ app.referenceNumber }}</h2>
       <span class="badge" [class]="'status-' + app.status">{{ statusLabels[app.status] }}</span>
+      <span class="channel">via {{ app.channel }}</span>
     </div>
 
     <div class="columns">
-      <dl>
-        <dt>Applicant</dt>
-        <dd>{{ app.applicant.title }} {{ app.applicant.givenName }} {{ app.applicant.surname }}</dd>
-        <dt>Gender</dt>
-        <dd>{{ app.applicant.gender }}</dd>
-        <dt>Address</dt>
-        <dd>
-          {{ app.applicant.address.street }}, {{ app.applicant.address.suburb }},
-          {{ app.applicant.address.province }}, {{ app.applicant.address.postalCode }}
-        </dd>
-        <dt>Channel</dt>
-        <dd>{{ app.channel }}</dd>
-      </dl>
+      <div>
+        <h3>Applicant</h3>
+        <dl>
+          <dt>Name</dt>
+          <dd>
+            {{ titleLabels[app.applicant.title] }} {{ app.applicant.givenName }}
+            {{ app.applicant.surname }}
+          </dd>
+          <dt>Gender</dt>
+          <dd>{{ genderLabels[app.applicant.gender] }}</dd>
+          <dt>Address</dt>
+          <dd>
+            {{ app.applicant.address.street }}, {{ app.applicant.address.suburb }},
+            {{ app.applicant.address.province }}, {{ app.applicant.address.postalCode }}
+          </dd>
+          <dt>Submitted</dt>
+          <dd>{{ app.createdAt | date: 'd MMM y, HH:mm' }}</dd>
+        </dl>
+      </div>
 
-      <dl>
-        <dt>Purpose</dt>
-        <dd>{{ purposeLabels[app.loanPurpose] }}</dd>
-        <dt>Amount</dt>
-        <dd>{{ amountLabels[app.loanAmountBand] }}</dd>
-        <dt>Term</dt>
-        <dd>{{ app.termYears }} years</dd>
-        <dt>Monthly income</dt>
-        <dd>{{ incomeLabels[app.incomeBand] }}</dd>
-        <dt>Estimated repayment</dt>
-        <dd>R {{ app.estimatedMonthlyRepayment | number: '1.2-2' }} per month</dd>
-        <dt>Affordability</dt>
-        <dd>
-          <span class="badge" [class]="'affordability-' + app.affordabilityResult">{{
-            app.affordabilityResult
-          }}</span>
-        </dd>
-      </dl>
+      <div>
+        <h3>Loan</h3>
+        <dl>
+          <dt>Purpose</dt>
+          <dd>{{ purposeLabels[app.loanPurpose] }}</dd>
+          <dt>Amount</dt>
+          <dd>{{ amountLabels[app.loanAmountBand] }}</dd>
+          <dt>Term</dt>
+          <dd>{{ app.termYears }} years</dd>
+          <dt>Monthly income</dt>
+          <dd>{{ incomeLabels[app.incomeBand] }}</dd>
+        </dl>
+      </div>
+
+      <div class="readout">
+        <h3>Affordability</h3>
+        <div class="repayment">R {{ app.estimatedMonthlyRepayment | number: '1.2-2' }}</div>
+        <div class="readout-label">estimated per month</div>
+        <span class="badge" [class]="'affordability-' + app.affordabilityResult">
+          {{ app.affordabilityResult }}
+        </span>
+      </div>
     </div>
   </section>
 
@@ -56,37 +67,29 @@
         possible.
       </p>
     } @else {
-      <div class="form-row">
-        <label>
-          Your name
-          <input
-            id="changedBy"
-            type="text"
-            maxlength="50"
-            placeholder="e.g. reviewer.thandi"
-            [value]="changedBy()"
-            (input)="changedBy.set($any($event.target).value)"
-          />
-        </label>
-        <label class="grow">
-          Note (optional)
-          <input
-            id="note"
-            type="text"
-            maxlength="255"
-            placeholder="e.g. Payslips received"
-            [value]="note()"
-            (input)="note.set($any($event.target).value)"
-          />
-        </label>
-      </div>
+      <p class="signed-in">
+        Signed in as <strong>{{ auth.user()?.displayName }}</strong>. Your username is saved in the
+        history.
+      </p>
+
+      <label class="note">
+        Note (optional)
+        <input
+          id="note"
+          type="text"
+          maxlength="255"
+          placeholder="e.g. Payslips received"
+          [value]="note()"
+          (input)="note.set($any($event.target).value)"
+        />
+      </label>
 
       <div class="actions">
         @for (status of nextStatuses(); track status) {
           <button
             type="button"
             [class]="'action-' + status"
-            [disabled]="saving() || !changedBy().trim() || isBlocked(status)"
+            [disabled]="saving() || isBlocked(status)"
             (click)="changeStatus(status)"
           >
             {{ statusActions[status] }}
@@ -108,21 +111,28 @@
 
   <section class="card">
     <h3>History</h3>
-    <ol class="history">
+    <ol class="timeline">
       @for (entry of history(); track $index) {
         <li>
-          <strong>{{ statusLabels[entry.toStatus] }}</strong>
-          @if (entry.fromStatus) {
-            <span class="muted">(from {{ statusLabels[entry.fromStatus] }})</span>
-          }
-          by {{ entry.changedBy }} on {{ entry.changedAt | date: 'd MMM y, HH:mm' }}
-          @if (entry.note) {
-            <div class="muted">“{{ entry.note }}”</div>
-          }
+          <span class="node" [class]="'node node-' + entry.toStatus" aria-hidden="true"></span>
+          <div>
+            <span class="badge" [class]="'status-' + entry.toStatus">{{
+              statusLabels[entry.toStatus]
+            }}</span>
+            @if (entry.fromStatus) {
+              <span class="muted from">from {{ statusLabels[entry.fromStatus] }}</span>
+            }
+            <div class="meta">
+              by {{ entry.changedBy }} · {{ entry.changedAt | date: 'd MMM y, HH:mm' }}
+            </div>
+            @if (entry.note) {
+              <div class="note-text">“{{ entry.note }}”</div>
+            }
+          </div>
         </li>
       }
     </ol>
   </section>
 } @else if (!error()) {
-  <p class="empty">Loading…</p>
+  <p class="empty">Loading data stream…</p>
 }

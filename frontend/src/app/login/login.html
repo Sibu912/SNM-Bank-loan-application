@@ -1,0 +1,111 @@
+<div class="bg-rays" aria-hidden="true"></div>
+
+<a class="back-link" [href]="loanFormUrl">
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2.5"
+    aria-hidden="true"
+  >
+    <path d="M19 12H5M12 19l-7-7 7-7" />
+  </svg>
+  Back to loan form
+</a>
+
+<div class="page-container">
+  <!-- Left: animated SNM vault emblem -->
+  <div class="logo-section" aria-hidden="true">
+    <div class="emblem">
+      <div class="ring ring-outer"></div>
+      <div class="ring ring-middle"></div>
+      <div class="ring ring-inner"></div>
+      <div class="core">SNM</div>
+    </div>
+    <div class="emblem-text">SNM BANK</div>
+
+    <div class="link-arrow">
+      <div class="link-node"></div>
+      <div class="link-line"></div>
+      <div class="link-head"></div>
+    </div>
+  </div>
+
+  <!-- Right: login panel -->
+  <div class="ui-wrapper">
+    <div class="accent accent-left-1"></div>
+    <div class="accent accent-left-2"></div>
+    <div class="accent accent-left-3"></div>
+    <div class="accent accent-right-1"></div>
+    <div class="accent accent-right-2"></div>
+    <div class="accent accent-right-3"></div>
+
+    <div class="panel-border">
+      <div class="panel-inner">
+        <div class="panel-logo">SNM BANK</div>
+
+        <div class="header-content">
+          <h1>Reviewer login</h1>
+          <p>Loan applications control // authorised staff only</p>
+        </div>
+
+        @if (reason() === 'expired') {
+          <p class="notice" role="status">SESSION ENDED // PLEASE LOG IN AGAIN</p>
+        }
+
+        <form (submit)="submit($event)" novalidate>
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input
+              id="username"
+              type="text"
+              autocomplete="username"
+              placeholder="e.g. thandi"
+              [value]="username()"
+              (input)="username.set($any($event.target).value)"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="input-wrapper">
+              <input
+                id="password"
+                [type]="showPassword() ? 'text' : 'password'"
+                autocomplete="current-password"
+                placeholder="Enter your password"
+                [value]="password()"
+                (input)="password.set($any($event.target).value)"
+              />
+              <button
+                type="button"
+                class="toggle-password"
+                [class.active]="showPassword()"
+                [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+                (click)="showPassword.set(!showPassword())"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M12 5C6.5 5 2.7 9.1 1.5 12c1.2 2.9 5 7 10.5 7s9.3-4.1 10.5-7C21.3 9.1 17.5 5 12 5zm0 11.5a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zm0-2.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          @if (error()) {
+            <p class="login-error" role="alert">{{ error() }}</p>
+          }
+
+          <button type="submit" class="submit-btn" [disabled]="busy()">
+            {{ busy() ? 'Verifying…' : 'System login' }}
+          </button>
+        </form>
+
+        <p class="hint">Demo accounts are listed in docs/SETUP.md</p>
+      </div>
+    </div>
+  </div>
+</div>

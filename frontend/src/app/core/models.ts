@@ -67,10 +67,18 @@ export interface PageResponse<T> {
   totalPages: number;
 }
 
+/** The reviewer is taken from the login token, so it isn't part of the request. */
 export interface StatusChangeRequest {
   status: ApplicationStatus;
   note: string | null;
-  changedBy: string;
+}
+
+/** What POST /api/auth/login returns. */
+export interface LoginResponse {
+  token: string;
+  username: string;
+  displayName: string;
+  expiresAt: string;
 }
 
 /** The error body the backend sends (Spring's ProblemDetail). */
