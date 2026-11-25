@@ -35,7 +35,9 @@ class LoanApplicationApiIntegrationTest {
 
     @Test
     void submitReviewAndApproveAnApplication() throws Exception {
-        // 1. Submit
+        String bearer = "Bearer " + loginAs("thandi");
+
+        // 1. Submit (public, like the loan form - no login needed)
         MvcResult created = mockMvc.perform(post("/api/applications")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(TestData.submitJson("2001", 5)))
@@ -47,55 +49,71 @@ class LoanApplicationApiIntegrationTest {
         String reference = JsonPath.read(created.getResponse().getContentAsString(), "$.referenceNumber");
 
         // 2. Read it back
-        mockMvc.perform(get("/api/applications/" + reference))
+        mockMvc.perform(get("/api/applications/" + reference).header("Authorization", bearer))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.applicant.surname").value("Nkosi"))
                 .andExpect(jsonPath("$.channel").value("WEB"));
 
         // 3. It appears in the list of submitted applications
-        mockMvc.perform(get("/api/applications").param("status", "SUBMITTED"))
+        mockMvc.perform(get("/api/applications").header("Authorization", bearer).param("status", "SUBMITTED"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[*].referenceNumber", hasItem(reference)))
                 .andExpect(jsonPath("$.content[0].applicantName").value("Mr Thabo Nkosi"));
 
         // 4. Approving straight away is not allowed
         mockMvc.perform(patch("/api/applications/" + reference + "/status")
+                        .header("Authorization", bearer)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"status": "APPROVED", "changedBy": "reviewer.thandi"}
+                                {"status": "APPROVED"}
                                 """))
                 .andExpect(status().isConflict());
 
         // 5. Review, then approve
         mockMvc.perform(patch("/api/applications/" + reference + "/status")
+                        .header("Authorization", bearer)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"status": "UNDER_REVIEW", "note": "Payslips received", "changedBy": "reviewer.thandi"}
+                                {"status": "UNDER_REVIEW", "note": "Payslips received"}
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("UNDER_REVIEW"));
 
         mockMvc.perform(patch("/api/applications/" + reference + "/status")
+                        .header("Authorization", bearer)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"status": "APPROVED", "changedBy": "reviewer.thandi"}
+                                {"status": "APPROVED"}
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("APPROVED"));
 
-        // 6. The history has all three steps, oldest first
-        mockMvc.perform(get("/api/applications/" + reference + "/history"))
+        // 6. The history has all three steps, oldest first, with the logged-in reviewer's username
+        mockMvc.perform(get("/api/applications/" + reference + "/history").header("Authorization", bearer))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(3))
                 .andExpect(jsonPath("$[0].toStatus").value("SUBMITTED"))
                 .andExpect(jsonPath("$[0].changedBy").value("system"))
                 .andExpect(jsonPath("$[1].toStatus").value("UNDER_REVIEW"))
+                .andExpect(jsonPath("$[1].changedBy").value("thandi"))
                 .andExpect(jsonPath("$[2].toStatus").value("APPROVED"));
     }
 
     @Test
     void unknownReferenceReturns404() throws Exception {
-        mockMvc.perform(get("/api/applications/SNM-2026-999999"))
+        mockMvc.perform(get("/api/applications/SNM-2026-999999").header("Authorization", "Bearer " + loginAs("sipho")))
                 .andExpect(status().isNotFound());
+    }
+
+    /** Logs in as one of the demo reviewers from V2__create_reviewer_table.sql and returns the JWT. */
+    private String loginAs(String username) throws Exception {
+        MvcResult result = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username": "%s", "password": "Reviewer#2026"}
+                                """.formatted(username)))
+                .andExpect(status().isOk())
+                .andReturn();
+        return JsonPath.read(result.getResponse().getContentAsString(), "$.token");
     }
 }

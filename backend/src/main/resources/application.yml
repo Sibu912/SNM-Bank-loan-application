@@ -20,3 +20,6 @@ snm:
     max-repayment-to-income: 0.30   # repayment may be at most 30% of monthly income
   cors:
     allowed-origins: http://localhost:4200,http://localhost:5500,http://127.0.0.1:5500
+  security:
+    jwt-secret: ${JWT_SECRET:}       # at least 32 characters; if empty, a random key is used
+    token-validity-minutes: 480      # a login lasts 8 hours

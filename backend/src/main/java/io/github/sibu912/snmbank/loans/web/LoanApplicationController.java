@@ -13,6 +13,8 @@ import io.github.sibu912.snmbank.loans.web.dto.SubmitApplicationRequest;
 import io.github.sibu912.snmbank.loans.web.dto.SubmitApplicationResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,6 +30,7 @@ import java.util.List;
 /**
  * REST endpoints for loan applications (see docs/API.md).
  * Kept thin: it validates input, calls the service and maps the result to DTOs.
+ * Submitting is public (the loan form); everything else needs a reviewer login (SecurityConfig).
  */
 @RestController
 @RequestMapping("/api/applications")
@@ -62,11 +65,13 @@ public class LoanApplicationController {
         return ApplicationMapper.toDetail(service.findByReference(referenceNumber));
     }
 
+    /** The reviewer making the change is the logged-in user (the "sub" of their JWT). */
     @PatchMapping("/{referenceNumber}/status")
     public ApplicationDetail changeStatus(@PathVariable String referenceNumber,
-                                          @Valid @RequestBody StatusChangeRequest request) {
+                                          @Valid @RequestBody StatusChangeRequest request,
+                                          @AuthenticationPrincipal Jwt reviewer) {
         LoanApplication application = service.changeStatus(
-                referenceNumber, request.status(), request.note(), request.changedBy().trim());
+                referenceNumber, request.status(), request.note(), reviewer.getSubject());
         return ApplicationMapper.toDetail(application);
     }
 

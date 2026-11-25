@@ -11,15 +11,63 @@ The codes used in requests (for example `FROM_250K_TO_499K`) are listed in [DESI
 
 ---
 
+## Authentication
+
+Reviewers log in with a username and password stored in the `reviewer` table (BCrypt hashes). A successful login returns a **JWT**, which the client sends on every admin request:
+
+```text
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+```
+
+| Who | Needs a login? |
+|-----|----------------|
+| Loan form: `POST /api/applications` | No |
+| Logging in: `POST /api/auth/login` | No |
+| Partner systems: SOAP on `/ws` | No (see [DESIGN.md D11](DESIGN.md#8-design-decisions)) |
+| Everything else under `/api` | **Yes**. Without a valid token the response is `401 Unauthorized`. |
+
+Tokens are signed with HMAC-SHA256 and are valid for 8 hours (`snm.security.token-validity-minutes`). The signing key comes from the `JWT_SECRET` environment variable (at least 32 characters). If it isn't set, the backend makes a random key at start-up, so everyone has to log in again after a restart.
+
+### Log in
+
+`POST /api/auth/login`
+
+```json
+{ "username": "thandi", "password": "Reviewer#2026" }
+```
+
+**Response** `200 OK`
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9...",
+  "username": "thandi",
+  "displayName": "Thandi Mokoena",
+  "expiresAt": "2026-11-26T02:30:00Z"
+}
+```
+
+The username isn't case-sensitive. A wrong username **or** password gives the same `401`, so the response doesn't reveal which usernames exist:
+
+```json
+{ "title": "Login failed", "status": 401, "detail": "Wrong username or password" }
+```
+
+### Who am I
+
+`GET /api/auth/me` (needs a login) returns `{ "username": "thandi", "displayName": "Thandi Mokoena" }`.
+
+---
+
 ## REST endpoints
 
-| # | Method | Path | Success |
-|---|--------|------|---------|
-| 1 | `POST` | `/api/applications` | `201 Created` |
-| 2 | `GET` | `/api/applications` | `200 OK` |
-| 3 | `GET` | `/api/applications/{referenceNumber}` | `200 OK` |
-| 4 | `PATCH` | `/api/applications/{referenceNumber}/status` | `200 OK` |
-| 5 | `GET` | `/api/applications/{referenceNumber}/history` | `200 OK` |
+| # | Method | Path | Login | Success |
+|---|--------|------|-------|---------|
+| 1 | `POST` | `/api/applications` | – | `201 Created` |
+| 2 | `GET` | `/api/applications` | ✔ | `200 OK` |
+| 3 | `GET` | `/api/applications/{referenceNumber}` | ✔ | `200 OK` |
+| 4 | `PATCH` | `/api/applications/{referenceNumber}/status` | ✔ | `200 OK` |
+| 5 | `GET` | `/api/applications/{referenceNumber}/history` | ✔ | `200 OK` |
 
 ### 1. Submit an application
 
@@ -141,8 +189,7 @@ Newest applications come first.
 ```json
 {
   "status": "UNDER_REVIEW",
-  "note": "Payslips received",
-  "changedBy": "reviewer.thandi"
+  "note": "Payslips received"
 }
 ```
 
@@ -150,11 +197,12 @@ Newest applications come first.
 |-------|----------|-------|
 | `status` | Yes | Must be an allowed next status ([DESIGN.md §6.3](DESIGN.md#63-status-flow)) |
 | `note` | No | Up to 255 characters |
-| `changedBy` | Yes | 1–50 characters |
+
+Who made the change isn't in the body: it's the logged-in reviewer (the `sub` of their token), saved as `changedBy` in the history.
 
 **Response** `200 OK`: the updated application, in the same shape as endpoint 3.
 
-**Errors:** `400` validation · `404` not found · `409` status change not allowed
+**Errors:** `400` validation · `401` not logged in · `404` not found · `409` status change not allowed
 
 ### 5. Status history
 
@@ -175,7 +223,7 @@ Newest applications come first.
     "fromStatus": "SUBMITTED",
     "toStatus": "UNDER_REVIEW",
     "note": "Payslips received",
-    "changedBy": "reviewer.thandi",
+    "changedBy": "thandi",
     "changedAt": "2026-11-26T09:15:00"
   }
 ]
@@ -235,7 +283,7 @@ snm:
     allowed-origins: http://localhost:4200,http://localhost:5500,http://127.0.0.1:5500
 ```
 
-`4200` is the Angular dev server. `5500` is the VS Code Live Server extension, for the form.
+`4200` is the Angular dev server. `5500` is the VS Code Live Server extension, for the form. The `Authorization` and `Content-Type` headers are allowed, so the admin can send its token. Spring Security applies the CORS rules before it checks the token.
 
 ---
 

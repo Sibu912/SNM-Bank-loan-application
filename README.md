@@ -18,7 +18,7 @@ It started as a two-page web form. It now has a **Java backend**, a **SOAP inter
 |-----|--------------|
 | **Applicant** | Fills in the form: personal details, then loan details |
 | **Backend** | Saves the application, runs an affordability check and returns a reference number such as `SNM-2026-000001` |
-| **Reviewer** (Angular admin) | Lists applications and moves them through `SUBMITTED → UNDER_REVIEW → APPROVED / DECLINED` |
+| **Reviewer** (Angular admin) | Logs in, then lists applications and moves them through `SUBMITTED → UNDER_REVIEW → APPROVED / DECLINED` |
 | **Partner system** (SOAP) | Submits applications and checks their status using an XML contract (XSD) |
 | **Blue Prism bot** | Fills in the form automatically (an RPA exercise that uses the same page) |
 
@@ -49,6 +49,7 @@ flowchart LR
 | Area | Technology |
 |------|------------|
 | Backend | Java 21, Spring Boot, Spring Web, Spring Web Services (SOAP), Bean Validation |
+| Security | Spring Security: reviewer accounts in PostgreSQL (BCrypt), stateless JWT login |
 | Data | Spring Data JPA / Hibernate, PostgreSQL 16 (a separate `snm_loans_test` database for tests), Flyway migrations |
 | Contracts | JSON over REST · XSD + JAXB for SOAP (contract-first) |
 | Testing | JUnit 5, Mockito, MockMvc, Spring-WS test support |
@@ -74,14 +75,15 @@ SNM-Bank-loan-application/
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| `POST` | `/api/applications` | Submit a new application |
+| `POST` | `/api/auth/login` | Reviewer login, returns a JWT |
+| `POST` | `/api/applications` | Submit a new application (public) |
 | `GET` | `/api/applications?status=&page=&size=` | List applications (paged, optional status filter) |
 | `GET` | `/api/applications/{referenceNumber}` | Get one application |
 | `PATCH` | `/api/applications/{referenceNumber}/status` | Change status (reviewer) |
 | `GET` | `/api/applications/{referenceNumber}/history` | Status change history |
 | SOAP | `/ws` (WSDL: `/ws/loans.wsdl`) | `SubmitLoanApplication`, `GetApplicationStatus` |
 
-Full details, with request and response examples, are in [docs/API.md](docs/API.md).
+All `GET` and `PATCH` endpoints need a login (`Authorization: Bearer <token>`). Full details, with request and response examples, are in [docs/API.md](docs/API.md).
 
 ## Business rules (short version)
 
@@ -96,12 +98,14 @@ backend/src/main/java/io/github/sibu912/snmbank/loans/
 ├── domain/        JPA entities (Applicant, LoanApplication, ApplicationStatusHistory) and enums
 ├── repository/    Spring Data JPA interfaces
 ├── service/       LoanApplicationService, AffordabilityCalculator - the business rules
-├── web/           REST controller, DTOs (records), validation, ProblemDetail error handling
+├── web/           REST controllers (applications + login), DTOs (records), validation, ProblemDetail errors
+├── security/      Reviewer accounts for Spring Security, JWT creation
 ├── soap/          Spring-WS config, endpoint and mapper (JAXB classes are generated from the XSD)
-└── config/        Settings (snm.loan.*) and CORS
+└── config/        Security rules, password checking, settings (snm.loan.*) and CORS
 backend/src/main/resources/
 ├── application.yml
-├── db/migration/V1__create_loan_tables.sql   (Flyway)
+├── db/migration/V1__create_loan_tables.sql     (Flyway)
+├── db/migration/V2__create_reviewer_table.sql  (reviewer accounts + 2 demo users)
 └── xsd/loan-application.xsd                  (SOAP contract)
 ```
 
@@ -146,8 +150,10 @@ npm start          # http://localhost:4200
 - [x] Connect the form to the API
 - [x] Angular admin screen
 - [x] GitHub Actions build
+- [x] Reviewer login (Spring Security + JWT, accounts in PostgreSQL)
+- [x] Tests run on PostgreSQL instead of H2
 
-**Later:** Oracle database profile · JMS message when a status changes · deployment to WebLogic · reviewer login
+**Later:** Oracle database profile · JMS message when a status changes · deployment to WebLogic · reviewer roles
 
 ## What I learned
 

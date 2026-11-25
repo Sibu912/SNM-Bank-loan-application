@@ -18,11 +18,11 @@ The loan service adds:
 
 | In scope | Out of scope (for now) |
 |----------|------------------------|
-| Save applications from the form (REST) | Login and roles for reviewers |
+| Save applications from the form (REST) | Different roles for different staff |
 | Affordability check | Credit bureau checks |
 | Status flow with history | Uploading documents |
 | SOAP submit and status operations | Email or SMS notifications |
-| Angular screen for reviewers | Deploying to the cloud |
+| Angular screen for reviewers, with login | Deploying to the cloud |
 
 ## 3. Users and channels
 
@@ -30,7 +30,7 @@ The loan service adds:
 |-------|---------|-------|
 | Applicant | Web form → REST | The form calls the API only when it's given an API address (see decision D2) |
 | Blue Prism bot | Web form | Fills in the same form. The element IDs in `index.html` must not change. |
-| Reviewer | Angular admin → REST | Lists applications, changes their status, views history |
+| Reviewer | Angular admin → REST, after logging in | Lists applications, changes their status, views history |
 | Partner system | SOAP over HTTP | Uses the XSD contract in [API.md](API.md#soap-contract-xsd) |
 
 ## 4. Architecture
@@ -192,7 +192,7 @@ Rules:
 
 1. Any other change is rejected: REST returns **409 Conflict**, with an error body that explains why.
 2. `APPROVED` is only allowed when `affordabilityResult = PASS`. The Angular admin also disables its Approve button in that case.
-3. Every change, including the first `SUBMITTED`, **adds a row** to `application_status_history` with the old status, new status, note, who made the change and when.
+3. Every change, including the first `SUBMITTED`, **adds a row** to `application_status_history` with the old status, new status, note, who made the change (the logged-in reviewer's username, or `system` for the first row) and when.
 4. The allowed moves are defined in one place: a method on the enum, `ApplicationStatus.canMoveTo(next)`.
 
 ### 6.4 Reference numbers
@@ -208,6 +208,8 @@ The number is built from the database ID, so it's set **straight after the inser
 | Invalid input | 400 + list of field errors | SOAP Fault (XSD validation) |
 | Reference number not found | 404 | SOAP Fault: `Client`, "Application … not found" |
 | Status change not allowed | 409 | n/a (no status changes over SOAP in v1) |
+| Not logged in, or the token is invalid or expired | 401 | n/a (SOAP is public) |
+| Wrong username or password | 401 "Login failed" | n/a |
 | Unexpected error | 500 with a generic message. Details go to the log only. | SOAP Fault: `Server` |
 
 REST errors use Spring's `ProblemDetail` format (RFC 9457). There are examples in [API.md](API.md#error-format).
@@ -223,13 +225,14 @@ REST errors use Spring's `ProblemDetail` format (RFC 9457). There are examples i
 | D5 | **Contract-first SOAP**: write the XSD first, then generate the Java classes with JAXB | Partners agree on the XML contract before any code is written, which is how enterprise integrations usually work. |
 | D6 | Enums stored as text (`EnumType.STRING`) | Easy to read in the database, and adding a new value doesn't break existing data. |
 | D7 | `BigDecimal` for money | `double` causes rounding errors with currency. |
-| D8 | No login in v1. The reviewer's name is sent as `changedBy`. | Keeps v1 small. Spring Security is on the roadmap. |
+| D8 | Reviewers log in. Accounts live in the PostgreSQL `reviewer` table with **BCrypt** password hashes, and the API uses a signed **JWT** in the `Authorization` header, with no server sessions. | Stateless tokens suit a REST API used by a separate front end: no cookies, so no CSRF risk. The reviewer recorded on a status change comes from the token, so it can't be faked in the request body. |
 | D9 | No ID number is collected, so a new `applicant` row is created for every submission | The form doesn't ask for an ID number, and we only store what we need (in the spirit of POPIA). |
-| D10 | Package by layer (`web`, `service`, `repository`, …) | Easy to follow at this size. |
+| D10 | Package by layer (`web`, `service`, `repository`, `security`, …) | Easy to follow at this size. |
+| D11 | SOAP (`/ws`) and the loan form's `POST /api/applications` stay public | The form is used by the public and by the Blue Prism bot. Partner systems would normally use WS-Security or a private network, which is out of scope here. |
 
 ## 9. Later ideas
 
 - **Oracle profile:** run the same app against Oracle Database Free (Docker), with an Oracle-specific Flyway folder
 - **JMS:** publish an `ApplicationStatusChanged` message to a queue (ActiveMQ Artemis, which uses the same JMS API as TIBCO EMS)
 - **WebLogic:** package the backend as a WAR and deploy it to WebLogic in Docker
-- **Security:** reviewer login with Spring Security
+- **Roles:** for example, only a senior reviewer may approve loans over R1 million

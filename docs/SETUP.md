@@ -68,6 +68,15 @@ snm:
 
 It's running when you see `Started LoanServiceApplication` in the console.
 
+**Login tokens:** optionally set `$env:JWT_SECRET` to any text of at least 32 characters before starting. If you don't, a random key is used, and you'll need to log in again after every restart.
+
+**Demo reviewer accounts** (created by Flyway in `V2__create_reviewer_table.sql`):
+
+| Username | Password |
+|----------|----------|
+| `thandi` | `Reviewer#2026` |
+| `sipho` | `Reviewer#2026` |
+
 ## 5. Try the REST API
 
 > In PowerShell, plain `curl` is a shortcut for `Invoke-WebRequest`. Type **`curl.exe`**, or use Postman.
@@ -79,8 +88,14 @@ $body = @{
   loanPurpose = "VEHICLE"; loanAmountBand = "FROM_250K_TO_499K"; termYears = 5; incomeBand = "FROM_50K_TO_99K"
 } | ConvertTo-Json
 
+# Submitting is public (like the loan form)
 Invoke-RestMethod -Method Post -Uri http://localhost:8080/api/applications -ContentType "application/json" -Body $body
-Invoke-RestMethod http://localhost:8080/api/applications
+
+# Everything else needs a login token
+$login = Invoke-RestMethod -Method Post -Uri http://localhost:8080/api/auth/login -ContentType "application/json" `
+  -Body '{"username":"thandi","password":"Reviewer#2026"}'
+$auth = @{ Authorization = "Bearer $($login.token)" }
+Invoke-RestMethod http://localhost:8080/api/applications -Headers $auth
 ```
 
 ## 6. Try the SOAP endpoint
@@ -125,7 +140,7 @@ npm install
 npm start
 ```
 
-Open `http://localhost:4200`. You'll see the list of applications. Click a reference number to open it, type your name and use the buttons to move it through the review.
+Open `http://localhost:4200`. You'll land on the **login page**: sign in as `thandi` / `Reviewer#2026`. Then you'll see the list of applications. Click a reference number to open it and use the buttons to move it through the review. Your username is recorded in the history.
 
 ## Troubleshooting
 
@@ -139,4 +154,6 @@ Open `http://localhost:4200`. You'll see the list of applications. Click a refer
 | Browser shows a **CORS** error | Add the page's origin, exactly as shown in the error, to `snm.cors.allowed-origins` |
 | `Port 8080 was already in use` | Stop the other app, or add `server.port: 8081` to `application.yml` (then also change `frontend/src/environments/environment.ts`) |
 | Angular page says "Could not reach the loan service" | The backend isn't running, or it's on a different port |
+| You're sent back to the login page | Your token expired (8 hours) or the backend restarted without `JWT_SECRET`. Log in again. |
+| `JWT_SECRET must be at least 32 characters long` | Use a longer secret, or remove `JWT_SECRET` to use a random key |
 | `npm install` is very slow | OneDrive is syncing `node_modules`. Pause OneDrive syncing while it installs. |
