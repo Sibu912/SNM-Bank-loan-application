@@ -569,6 +569,9 @@
   function nextPage() {
     if (currentPage < totalPages) {
       showPage(currentPage + 1);
+    } else if (API_BASE) {
+      // Finish - save the application through the loan API
+      submitApplication();
     } else {
       // Finish - show thank you
       showThankYou();
@@ -581,7 +584,7 @@
     }
   }
 
-  function showThankYou() {
+  function showThankYou(referenceNumber) {
     // Hide form elements, show thank you
     document.querySelector('.page.active')?.classList.remove('active');
     document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
@@ -599,6 +602,168 @@
       <button class="btn btn-primary" onclick="window.location.reload()" style="display:block;width:100%;padding:14px 20px;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;background:#f58220;color:#fff;margin-top:24px">Main Page</button>
     `;
     container.insertBefore(tyDiv, container.querySelector('.survey-footer'));
+
+    // Only when the API saved the application: show the reference number
+    if (referenceNumber) {
+      const referenceLine = document.createElement('p');
+      referenceLine.id = 'referenceNumberLine';
+      referenceLine.style.marginTop = '16px';
+      referenceLine.append('Your reference number is ');
+      const strong = document.createElement('strong');
+      strong.id = 'referenceNumber';
+      strong.textContent = referenceNumber;
+      referenceLine.append(strong);
+      tyDiv.insertBefore(referenceLine, tyDiv.querySelector('button'));
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Optional connection to the SNM Bank loan API (backend/).
+  // Open the page as  index.html?api=http://localhost:8080  to save applications.
+  // Without ?api= the form works exactly as before (GitHub Pages and the Blue Prism bot).
+  // ---------------------------------------------------------------------------
+  const API_BASE = new URLSearchParams(window.location.search).get('api');
+
+  // The form shows labels; the API expects codes (docs/DESIGN.md, section 5.1)
+  const LOAN_AMOUNT_CODES = {
+    'Less Than 250 000': 'LESS_THAN_250K',
+    'R250 000 - R499 999': 'FROM_250K_TO_499K',
+    'R500 000 - R999 999': 'FROM_500K_TO_999K',
+    '1 Million and Greater': 'ONE_MILLION_PLUS'
+  };
+  const INCOME_CODES = {
+    'Less then R50 000': 'LESS_THAN_50K',
+    'R50 000 - R99 999': 'FROM_50K_TO_99K',
+    'R100 000 - R149 999': 'FROM_100K_TO_149K',
+    'R150 000 or Greater': 'FROM_150K_PLUS'
+  };
+  // Friendly names for the field errors the API can return
+  const FIELD_LABELS = {
+    'title': 'Title',
+    'givenName': 'Given Name',
+    'surname': 'Surname',
+    'gender': 'Gender',
+    'address': 'Address',
+    'address.street': 'Street',
+    'address.suburb': 'Suburb',
+    'address.province': 'Province',
+    'address.postalCode': 'Postal Code',
+    'loanPurpose': 'Loan Purpose',
+    'loanAmountBand': 'Loan Amount Required',
+    'termYears': 'Length of Loan',
+    'incomeBand': 'Income Details'
+  };
+
+  function textValue(id) {
+    return document.getElementById(id).value.trim();
+  }
+
+  function radioValue(name) {
+    const checked = document.querySelector('input[name="' + name + '"]:checked');
+    return checked ? checked.value : null;
+  }
+
+  function upperOrNull(value) {
+    return value ? value.toUpperCase() : null;
+  }
+
+  // Builds the JSON body for POST /api/applications (docs/API.md)
+  function buildApplication() {
+    const loanLength = document.getElementById('loanLength').value;
+    return {
+      title: upperOrNull(radioValue('title')),             // Mr -> MR
+      givenName: textValue('givenName'),
+      surname: textValue('surname'),
+      gender: upperOrNull(radioValue('gender')),           // Male -> MALE
+      address: {
+        street: textValue('street'),
+        suburb: textValue('suburb'),
+        province: textValue('province'),
+        postalCode: textValue('postalCode')
+      },
+      loanPurpose: upperOrNull(radioValue('loanPurpose')), // Vehicle -> VEHICLE
+      loanAmountBand: LOAN_AMOUNT_CODES[document.getElementById('loanAmount').value] || null,
+      termYears: loanLength ? Number(loanLength) : null,
+      incomeBand: INCOME_CODES[document.getElementById('incomeDetails').value] || null
+    };
+  }
+
+  async function submitApplication() {
+    const finishButton = document.getElementById('nextBtn');
+    finishButton.disabled = true;
+    finishButton.textContent = 'Submitting...';
+    clearApiMessage();
+
+    try {
+      const response = await fetch(API_BASE.replace(/\/+$/, '') + '/api/applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildApplication())
+      });
+
+      if (response.status === 201) {
+        const result = await response.json();
+        showThankYou(result.referenceNumber);
+        return;
+      }
+
+      if (response.status === 400) {
+        const problem = await response.json();
+        showApiMessage('Please fix the following and try again:', fieldErrorLines(problem));
+      } else {
+        showApiMessage('Sorry, your application could not be saved (error ' + response.status + '). Please try again.', []);
+      }
+    } catch (error) {
+      showApiMessage('Could not reach the loan service. Please check that it is running and try again.', []);
+    }
+
+    finishButton.disabled = false;
+    finishButton.textContent = 'Finish Loan Application';
+  }
+
+  function fieldErrorLines(problem) {
+    if (!problem || !problem.errors) {
+      return [problem && problem.detail ? problem.detail : 'Some answers are missing or invalid.'];
+    }
+    return Object.keys(problem.errors).map(function (field) {
+      return (FIELD_LABELS[field] || field) + ': ' + problem.errors[field];
+    });
+  }
+
+  // Shows a red message box at the top of the current page.
+  // textContent is used everywhere, so nothing from the server is treated as HTML.
+  function showApiMessage(heading, lines) {
+    const box = document.createElement('div');
+    box.id = 'apiMessage';
+    box.setAttribute('role', 'alert');
+    box.style.cssText = 'background:#fdecea;border-left:4px solid #e74c3c;color:#a12a1e;' +
+      'padding:12px 16px;border-radius:0 8px 8px 0;margin-bottom:20px;font-size:14px;line-height:1.5;';
+
+    const title = document.createElement('strong');
+    title.textContent = heading;
+    box.appendChild(title);
+
+    if (lines.length > 0) {
+      const list = document.createElement('ul');
+      list.style.margin = '8px 0 0 18px';
+      lines.forEach(function (line) {
+        const item = document.createElement('li');
+        item.textContent = line;
+        list.appendChild(item);
+      });
+      box.appendChild(list);
+    }
+
+    const activePage = document.querySelector('.page.active');
+    activePage.insertBefore(box, activePage.firstChild);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function clearApiMessage() {
+    const existing = document.getElementById('apiMessage');
+    if (existing) {
+      existing.remove();
+    }
   }
 
   // Init
