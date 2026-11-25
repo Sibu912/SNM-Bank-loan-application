@@ -150,7 +150,7 @@ CREATE INDEX idx_status_history_application ON application_status_history (loan_
 | `applicant_id` | `Applicant applicant` | `@ManyToOne(fetch = FetchType.LAZY, optional = false)` |
 | `loan_application_id` | `LoanApplication loanApplication` | `@ManyToOne(fetch = FetchType.LAZY, optional = false)` |
 
-The history is read through its own repository (`findByLoanApplicationIdOrderByChangedAtAsc`), not through a collection on the entity. That keeps the entities simple.
+The history is read through its own repository (`findByLoanApplicationIdOrderByIdAsc`, which returns rows in the order they were inserted), not through a collection on the entity. That keeps the entities simple.
 
 ## Useful queries
 
