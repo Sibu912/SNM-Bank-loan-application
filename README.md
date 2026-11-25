@@ -1,10 +1,12 @@
 # SNM Bank – Loan Application System
 
+[![CI](https://github.com/Sibu912/SNM-Bank-loan-application/actions/workflows/ci.yml/badge.svg)](https://github.com/Sibu912/SNM-Bank-loan-application/actions/workflows/ci.yml)
+
 A loan application system for **SNM Bank**, a fictional bank.
 
-It started as a two-page web form, and I'm now adding a **Java backend**, a **SOAP interface for partner systems** and an **Angular admin screen** for staff who review applications.
+It started as a two-page web form. It now has a **Java backend**, a **SOAP interface for partner systems** and an **Angular admin screen** for staff who review applications.
 
-> **Status:** 🚧 In progress. See the [roadmap](#roadmap) for what's done and what's next.
+> **Status:** version 1 is complete. See the [roadmap](#roadmap) for ideas for later.
 
 **Live form:** https://sibu912.github.io/SNM-Bank-loan-application/
 
@@ -51,7 +53,7 @@ flowchart LR
 | Contracts | JSON over REST · XSD + JAXB for SOAP (contract-first) |
 | Testing | JUnit 5, Mockito, MockMvc, Spring-WS test support |
 | Frontend | HTML/CSS/JavaScript form (GitHub Pages) · Angular admin screen |
-| CI | GitHub Actions |
+| CI | GitHub Actions: builds and tests the backend and the frontend on every push |
 
 ## Repository layout
 
@@ -59,7 +61,7 @@ flowchart LR
 SNM-Bank-loan-application/
 ├── index.html        # The loan form (served by GitHub Pages)
 ├── SNM Bank.png      # Logo
-├── backend/          # Spring Boot service: REST + SOAP
+├── backend/          # Spring Boot service: REST + SOAP (see below)
 ├── frontend/         # Angular admin screen
 └── docs/
     ├── DESIGN.md     # Requirements, business rules and design decisions
@@ -87,6 +89,34 @@ Full details, with request and response examples, are in [docs/API.md](docs/API.
 - **Status flow:** `SUBMITTED → UNDER_REVIEW → APPROVED or DECLINED`. Only applications that passed the affordability check can be approved.
 - **Audit trail:** every status change is saved in a history table.
 
+## Backend structure
+
+```text
+backend/src/main/java/io/github/sibu912/snmbank/loans/
+├── domain/        JPA entities (Applicant, LoanApplication, ApplicationStatusHistory) and enums
+├── repository/    Spring Data JPA interfaces
+├── service/       LoanApplicationService, AffordabilityCalculator - the business rules
+├── web/           REST controller, DTOs (records), validation, ProblemDetail error handling
+├── soap/          Spring-WS config, endpoint and mapper (JAXB classes are generated from the XSD)
+└── config/        Settings (snm.loan.*) and CORS
+backend/src/main/resources/
+├── application.yml
+├── db/migration/V1__create_loan_tables.sql   (Flyway)
+└── xsd/loan-application.xsd                  (SOAP contract)
+```
+
+## Tests
+
+| Where | What | How many |
+|-------|------|----------|
+| `backend` | Unit tests: affordability maths, status rules, service with Mockito mocks | 26 |
+| `backend` | Web layer: every endpoint, validation errors, CORS (`@WebMvcTest` + MockMvc) | 14 |
+| `backend` | Database: Flyway + JPA mappings + repositories on H2 (`@DataJpaTest`) | 4 |
+| `backend` | End to end: REST flow, SOAP via `MockWebServiceClient`, SOAP and WSDL over real HTTP | 10 |
+| `frontend` | API service and both pages (Vitest + `HttpTestingController`) | 15 |
+
+Run them with `.\mvnw.cmd verify` in `backend` and `npm test -- --watch=false` in `frontend`.
+
 ## Running it locally
 
 See [docs/SETUP.md](docs/SETUP.md). The short version:
@@ -97,20 +127,25 @@ See [docs/SETUP.md](docs/SETUP.md). The short version:
 cd backend
 $env:DB_PASSWORD = "your-db-password"
 .\mvnw.cmd spring-boot:run
+
+# 3. In a second window, start the admin screen
+cd frontend
+npm install
+npm start          # http://localhost:4200
 ```
 
 ## Roadmap
 
 - [x] Loan form (HTML/CSS/JS) on GitHub Pages
 - [x] Design docs: business rules, API, database
-- [ ] Spring Boot project setup
-- [ ] Database tables (Flyway), JPA entities and repositories
-- [ ] Affordability check and status rules, with unit tests
-- [ ] REST API with validation and error handling
-- [ ] SOAP endpoint, built contract-first from an XSD
-- [ ] Connect the form to the API
-- [ ] Angular admin screen
-- [ ] GitHub Actions build
+- [x] Spring Boot project setup
+- [x] Database tables (Flyway), JPA entities and repositories
+- [x] Affordability check and status rules, with unit tests
+- [x] REST API with validation and error handling
+- [x] SOAP endpoint, built contract-first from an XSD
+- [x] Connect the form to the API
+- [x] Angular admin screen
+- [x] GitHub Actions build
 
 **Later:** Oracle database profile · JMS message when a status changes · deployment to WebLogic · reviewer login
 

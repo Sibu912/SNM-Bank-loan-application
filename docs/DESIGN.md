@@ -191,7 +191,7 @@ stateDiagram-v2
 Rules:
 
 1. Any other change is rejected: REST returns **409 Conflict**, with an error body that explains why.
-2. `APPROVED` is only allowed when `affordabilityResult = PASS`.
+2. `APPROVED` is only allowed when `affordabilityResult = PASS`. The Angular admin also disables its Approve button in that case.
 3. Every change, including the first `SUBMITTED`, **adds a row** to `application_status_history` with the old status, new status, note, who made the change and when.
 4. The allowed moves are defined in one place: a method on the enum, `ApplicationStatus.canMoveTo(next)`.
 

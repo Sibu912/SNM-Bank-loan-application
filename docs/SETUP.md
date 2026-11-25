@@ -1,6 +1,6 @@
 # Setup – running the project locally (Windows)
 
-The commands below are for **PowerShell**. Steps that need code that isn't built yet are marked with the roadmap item they depend on.
+The commands below are for **PowerShell**.
 
 ---
 
@@ -11,8 +11,8 @@ The commands below are for **PowerShell**. Steps that need code that isn't built
 | Java JDK (Eclipse Temurin) | 21 | `java -version` |
 | Git | any recent | `git --version` |
 | PostgreSQL | 16 | `psql --version` |
-| Node.js (for Angular) | current LTS | `node -v` |
-| Angular CLI | latest | `ng version` |
+| Node.js (for Angular) | 22 LTS or newer | `node -v` |
+| Angular CLI (optional) | 22 | `ng version`. `npm start` works without a global install. |
 | SoapUI (open source) | any | for testing SOAP |
 | Postman or `curl.exe` | any | for testing REST |
 
@@ -37,7 +37,6 @@ CREATE DATABASE snm_loans OWNER snm_app;
 You don't need to create any tables. **Flyway** creates them when the backend starts.
 
 ## 4. Run the backend
-*Available after: Spring Boot project setup*
 
 ```powershell
 cd backend
@@ -69,7 +68,6 @@ snm:
 It's running when you see `Started LoanServiceApplication` in the console.
 
 ## 5. Try the REST API
-*Available after: REST API*
 
 > In PowerShell, plain `curl` is a shortcut for `Invoke-WebRequest`. Type **`curl.exe`**, or use Postman.
 
@@ -85,24 +83,25 @@ Invoke-RestMethod http://localhost:8080/api/applications
 ```
 
 ## 6. Try the SOAP endpoint
-*Available after: SOAP endpoint*
 
 1. Open SoapUI → **File → New SOAP Project**
 2. Initial WSDL: `http://localhost:8080/ws/loans.wsdl`
 3. Open the `SubmitLoanApplication` request, fill it in with the example from [API.md](API.md#example-submit) and click ▶
 
 ## 7. Run the tests
-*Available after: Spring Boot project setup*
 
 ```powershell
 cd backend
-.\mvnw.cmd verify
+.\mvnw.cmd verify                 # 54 tests
+
+cd ..\frontend
+npm install
+npm test -- --watch=false         # 15 tests
 ```
 
-Tests use an in-memory **H2** database (`application-test.yml`), so PostgreSQL doesn't need to be running.
+Backend tests use an in-memory **H2** database (`application-test.yml`), so PostgreSQL doesn't need to be running. GitHub Actions runs the same commands on every push (`.github/workflows/ci.yml`).
 
 ## 8. Use the loan form with the backend
-*Available after: Connect the form to the API*
 
 1. In VS Code, install the **Live Server** extension
 2. Right-click `index.html` → **Open with Live Server** (it opens on port 5500)
@@ -113,15 +112,16 @@ Tests use an in-memory **H2** database (`application-test.yml`), so PostgreSQL d
 Without `?api=...` the form works exactly as before, so GitHub Pages and the Blue Prism bot aren't affected.
 
 ## 9. Run the Angular admin
-*Available after: Angular admin screen*
+
+Keep the backend running (step 4), then in a second PowerShell window:
 
 ```powershell
 cd frontend
 npm install
-ng serve
+npm start
 ```
 
-Open `http://localhost:4200`.
+Open `http://localhost:4200`. You'll see the list of applications. Click a reference number to open it, type your name and use the buttons to move it through the review.
 
 ## Troubleshooting
 
@@ -132,4 +132,6 @@ Open `http://localhost:4200`.
 | `Schema-validation: missing table` | Flyway didn't run. Check that the migration is in `src/main/resources/db/migration` and its name starts with `V1__` (two underscores). |
 | `Validate failed: Migration checksum mismatch` | A migration that already ran was edited. Undo the edit and put the change in a new `V2__` file. |
 | Browser shows a **CORS** error | Add the page's origin, exactly as shown in the error, to `snm.cors.allowed-origins` |
-| `Port 8080 was already in use` | Stop the other app, or add `server.port: 8081` to `application.yml` |
+| `Port 8080 was already in use` | Stop the other app, or add `server.port: 8081` to `application.yml` (then also change `frontend/src/environments/environment.ts`) |
+| Angular page says "Could not reach the loan service" | The backend isn't running, or it's on a different port |
+| `npm install` is very slow | OneDrive is syncing `node_modules`. Pause OneDrive syncing while it installs. |
