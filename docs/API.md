@@ -185,7 +185,7 @@ Newest applications come first.
 
 All REST errors use Spring's `ProblemDetail` (RFC 9457).
 
-**400: validation failed**
+**400: validation failed.** Each key in `errors` is the field's path in the request body. An unknown code (for example `"title": "DR"`) or broken JSON also returns 400, without the `errors` map.
 
 ```json
 {
@@ -195,7 +195,7 @@ All REST errors use Spring's `ProblemDetail` (RFC 9457).
   "detail": "One or more fields are invalid",
   "instance": "/api/applications",
   "errors": {
-    "postalCode": "must be exactly 4 digits",
+    "address.postalCode": "must be exactly 4 digits",
     "givenName": "must not be blank"
   }
 }
@@ -208,7 +208,7 @@ All REST errors use Spring's `ProblemDetail` (RFC 9457).
   "type": "about:blank",
   "title": "Application not found",
   "status": 404,
-  "detail": "No application with reference SNM-2026-999999",
+  "detail": "Application SNM-2026-999999 not found",
   "instance": "/api/applications/SNM-2026-999999"
 }
 ```
