@@ -1,0 +1,8 @@
+# Used by tests marked with @ActiveProfiles("test").
+# Replaces PostgreSQL with an in-memory H2 database, so tests run anywhere
+# (your PC, GitHub Actions) without a real database or a password.
+spring:
+  datasource:
+    url: jdbc:h2:mem:snm_loans;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password: ""

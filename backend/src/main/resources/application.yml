@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: loan-service
+
+  # PostgreSQL database (created once - see docs/SETUP.md, step 3)
+  datasource:
+    url: jdbc:postgresql://localhost:5432/snm_loans
+    username: snm_app
+    password: ${DB_PASSWORD}   # read from an environment variable, never stored in Git
+
+  jpa:
+    hibernate:
+      ddl-auto: validate       # Flyway creates the tables; Hibernate only checks them
+    open-in-view: false        # no lazy loading outside the service layer
+
+# Settings for our own code (used from Phase 4 onwards)
+snm:
+  loan:
+    annual-interest-rate: 0.115     # 11.5% - example rate for this project
+    max-repayment-to-income: 0.30   # repayment may be at most 30% of monthly income
+  cors:
+    allowed-origins: http://localhost:4200,http://localhost:5500,http://127.0.0.1:5500
