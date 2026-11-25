@@ -1,0 +1,128 @@
+<a routerLink="/applications" class="back">← All applications</a>
+
+@if (error()) {
+  <p class="error" role="alert">{{ error() }}</p>
+}
+
+@if (application(); as app) {
+  <section class="card">
+    <div class="heading">
+      <h2>{{ app.referenceNumber }}</h2>
+      <span class="badge" [class]="'status-' + app.status">{{ statusLabels[app.status] }}</span>
+    </div>
+
+    <div class="columns">
+      <dl>
+        <dt>Applicant</dt>
+        <dd>{{ app.applicant.title }} {{ app.applicant.givenName }} {{ app.applicant.surname }}</dd>
+        <dt>Gender</dt>
+        <dd>{{ app.applicant.gender }}</dd>
+        <dt>Address</dt>
+        <dd>
+          {{ app.applicant.address.street }}, {{ app.applicant.address.suburb }},
+          {{ app.applicant.address.province }}, {{ app.applicant.address.postalCode }}
+        </dd>
+        <dt>Channel</dt>
+        <dd>{{ app.channel }}</dd>
+      </dl>
+
+      <dl>
+        <dt>Purpose</dt>
+        <dd>{{ purposeLabels[app.loanPurpose] }}</dd>
+        <dt>Amount</dt>
+        <dd>{{ amountLabels[app.loanAmountBand] }}</dd>
+        <dt>Term</dt>
+        <dd>{{ app.termYears }} years</dd>
+        <dt>Monthly income</dt>
+        <dd>{{ incomeLabels[app.incomeBand] }}</dd>
+        <dt>Estimated repayment</dt>
+        <dd>R {{ app.estimatedMonthlyRepayment | number: '1.2-2' }} per month</dd>
+        <dt>Affordability</dt>
+        <dd>
+          <span class="badge" [class]="'affordability-' + app.affordabilityResult">{{
+            app.affordabilityResult
+          }}</span>
+        </dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>Change status</h3>
+
+    @if (nextStatuses().length === 0) {
+      <p class="empty">
+        This application is {{ statusLabels[app.status] | lowercase }}. No more changes are
+        possible.
+      </p>
+    } @else {
+      <div class="form-row">
+        <label>
+          Your name
+          <input
+            id="changedBy"
+            type="text"
+            maxlength="50"
+            placeholder="e.g. reviewer.thandi"
+            [value]="changedBy()"
+            (input)="changedBy.set($any($event.target).value)"
+          />
+        </label>
+        <label class="grow">
+          Note (optional)
+          <input
+            id="note"
+            type="text"
+            maxlength="255"
+            placeholder="e.g. Payslips received"
+            [value]="note()"
+            (input)="note.set($any($event.target).value)"
+          />
+        </label>
+      </div>
+
+      <div class="actions">
+        @for (status of nextStatuses(); track status) {
+          <button
+            type="button"
+            [class]="'action-' + status"
+            [disabled]="saving() || !changedBy().trim() || isBlocked(status)"
+            (click)="changeStatus(status)"
+          >
+            {{ statusActions[status] }}
+          </button>
+        }
+      </div>
+
+      @if (app.affordabilityResult === 'FAIL' && app.status === 'UNDER_REVIEW') {
+        <p class="hint">
+          This application failed the affordability check, so it can only be declined.
+        </p>
+      }
+    }
+
+    @if (message()) {
+      <p class="success" role="status">{{ message() }}</p>
+    }
+  </section>
+
+  <section class="card">
+    <h3>History</h3>
+    <ol class="history">
+      @for (entry of history(); track $index) {
+        <li>
+          <strong>{{ statusLabels[entry.toStatus] }}</strong>
+          @if (entry.fromStatus) {
+            <span class="muted">(from {{ statusLabels[entry.fromStatus] }})</span>
+          }
+          by {{ entry.changedBy }} on {{ entry.changedAt | date: 'd MMM y, HH:mm' }}
+          @if (entry.note) {
+            <div class="muted">“{{ entry.note }}”</div>
+          }
+        </li>
+      }
+    </ol>
+  </section>
+} @else if (!error()) {
+  <p class="empty">Loading…</p>
+}

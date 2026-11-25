@@ -1,0 +1,93 @@
+<section class="card">
+  <div class="toolbar">
+    <h2>Loan applications</h2>
+
+    <label class="filter">
+      Status
+      <select id="statusFilter" (change)="onFilterChange($any($event.target).value)">
+        <option value="">All</option>
+        @for (status of statuses; track status) {
+          <option [value]="status">{{ statusLabels[status] }}</option>
+        }
+      </select>
+    </label>
+
+    <button type="button" class="secondary" (click)="load()" [disabled]="loading()">Refresh</button>
+  </div>
+
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+
+  @if (result(); as page) {
+    @if (page.content.length === 0) {
+      <p class="empty">No applications found.</p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Reference</th>
+            <th>Applicant</th>
+            <th>Purpose</th>
+            <th>Amount</th>
+            <th>Affordability</th>
+            <th>Status</th>
+            <th>Submitted</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (application of page.content; track application.referenceNumber) {
+            <tr>
+              <td>
+                <a [routerLink]="['/applications', application.referenceNumber]">{{
+                  application.referenceNumber
+                }}</a>
+              </td>
+              <td>{{ application.applicantName }}</td>
+              <td>{{ purposeLabels[application.loanPurpose] }}</td>
+              <td>{{ amountLabels[application.loanAmountBand] }}</td>
+              <td>
+                <span class="badge" [class]="'affordability-' + application.affordabilityResult">
+                  {{ application.affordabilityResult }}
+                </span>
+              </td>
+              <td>
+                <span class="badge" [class]="'status-' + application.status">{{
+                  statusLabels[application.status]
+                }}</span>
+              </td>
+              <td>{{ application.createdAt | date: 'd MMM y, HH:mm' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <div class="paging">
+        <button
+          type="button"
+          class="secondary"
+          (click)="previousPage()"
+          [disabled]="page.page === 0 || loading()"
+        >
+          Previous
+        </button>
+        <span
+          >Page {{ page.page + 1 }} of {{ page.totalPages }} ({{
+            page.totalElements
+          }}
+          applications)</span
+        >
+        <button
+          type="button"
+          class="secondary"
+          (click)="nextPage()"
+          [disabled]="page.page + 1 >= page.totalPages || loading()"
+        >
+          Next
+        </button>
+      </div>
+    }
+  } @else if (loading()) {
+    <p class="empty">Loading…</p>
+  }
+</section>
