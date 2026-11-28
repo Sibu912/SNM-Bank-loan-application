@@ -146,6 +146,10 @@ npm install
 npm start          # http://localhost:4200, log in as thandi / Reviewer#2026
 ```
 
+## Running it online
+
+The form and the admin run on GitHub Pages, the backend on Koyeb and the database on Neon, all on free plans. The step-by-step guide is in [docs/DEPLOY.md](docs/DEPLOY.md).
+
 ## Roadmap
 
 - [x] Loan form (HTML/CSS/JS) on GitHub Pages
