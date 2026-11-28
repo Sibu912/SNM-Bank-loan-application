@@ -1,0 +1,5 @@
+# Only backend/ is needed to build the container
+*
+!backend/pom.xml
+!backend/src/main/**
+!backend/docker/**

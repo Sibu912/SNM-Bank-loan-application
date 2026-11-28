@@ -2,11 +2,16 @@ spring:
   application:
     name: loan-service
 
-  # PostgreSQL database (created once - see docs/SETUP.md, step 3)
+  # PostgreSQL database. On your PC the defaults are used (see docs/SETUP.md, step 3).
+  # Online (docs/DEPLOY.md) DB_URL and DB_USERNAME point at the Neon database.
   datasource:
-    url: jdbc:postgresql://localhost:5432/snm_loans
-    username: snm_app
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/snm_loans}
+    username: ${DB_USERNAME:snm_app}
     password: ${DB_PASSWORD}   # read from an environment variable, never stored in Git
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 0          # close idle connections, so a free Neon database can sleep
+      idle-timeout: 60000
 
   jpa:
     hibernate:
@@ -19,7 +24,11 @@ snm:
     annual-interest-rate: 0.115     # 11.5% - example rate for this project
     max-repayment-to-income: 0.30   # repayment may be at most 30% of monthly income
   cors:
-    allowed-origins: http://localhost:4200,http://localhost:5500,http://127.0.0.1:5500
+    # Websites allowed to call the API. Online, CORS_ALLOWED_ORIGINS adds https://sibu912.github.io
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,http://localhost:5500,http://127.0.0.1:5500}
   security:
     jwt-secret: ${JWT_SECRET:}       # at least 32 characters; if empty, a random key is used
     token-validity-minutes: 480      # a login lasts 8 hours
+
+server:
+  port: ${PORT:8080}   # hosting platforms tell the app which port to use through PORT

@@ -99,6 +99,13 @@
             <p class="login-error" role="alert">{{ error() }}</p>
           }
 
+          @if (slow()) {
+            <p class="notice" role="status">
+              WAKING UP THE LOAN SERVICE // THE FREE SERVER SLEEPS WHEN IDLE, THIS CAN TAKE ABOUT A
+              MINUTE
+            </p>
+          }
+
           <button type="submit" class="submit-btn" [disabled]="busy()">
             {{ busy() ? 'Verifying…' : 'System login' }}
           </button>

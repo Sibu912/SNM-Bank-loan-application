@@ -59,6 +59,24 @@ describe('Login', () => {
     expect(navigateByUrl).toHaveBeenCalledWith('/applications');
   });
 
+  it('says the server is waking up when the login is slow', async () => {
+    vi.useFakeTimers();
+    try {
+      type('username', 'thandi');
+      type('password', 'Reviewer#2026');
+      submit();
+      vi.advanceTimersByTime(Login.SLOW_AFTER_MS + 100);
+      fixture.detectChanges();
+      expect(element.textContent).toContain('WAKING UP THE LOAN SERVICE');
+
+      http.expectOne(LOGIN_URL).flush(loginResponse());
+      fixture.detectChanges();
+      expect(element.textContent).not.toContain('WAKING UP THE LOAN SERVICE');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('goes back to the page the reviewer asked for', async () => {
     fixture.componentRef.setInput('returnUrl', '/applications/SNM-2026-000001');
     type('username', 'thandi');

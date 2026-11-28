@@ -68,3 +68,55 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  container:
+    name: Container (Docker, 512 MB like the free host)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: snm_app
+          POSTGRES_PASSWORD: ci-test-password
+          POSTGRES_DB: snm_loans
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U snm_app -d snm_loans"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build the image
+        run: docker build -t snm-loan-service .
+
+      - name: Start it with 512 MB, the same way as online
+        run: |
+          docker run -d --name loan-service --network host --memory 512m \
+            -e DATABASE_URL='postgresql://snm_app:ci-test-password@localhost:5432/snm_loans?sslmode=disable&channel_binding=require' \
+            -e JWT_SECRET='ci-only-secret-that-is-at-least-32-characters' \
+            -e CORS_ALLOWED_ORIGINS='https://sibu912.github.io' \
+            snm-loan-service
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:8080/ws/loans.wsdl > /dev/null && echo "Started after ${i}x2 seconds" && exit 0
+            sleep 2
+          done
+          docker logs loan-service
+          exit 1
+
+      - name: Submit an application and log in
+        run: |
+          curl -sf -X POST http://localhost:8080/api/applications \
+            -H 'Content-Type: application/json' -H 'Origin: https://sibu912.github.io' \
+            -d '{"title":"MS","givenName":"Lerato","surname":"Dlamini","gender":"FEMALE","address":{"street":"5 Main Road","suburb":"Rosebank","province":"Gauteng","postalCode":"2196"},"loanPurpose":"PROPERTY","loanAmountBand":"FROM_500K_TO_999K","termYears":20,"incomeBand":"FROM_50K_TO_99K"}' \
+            -D headers.txt
+          grep -i "access-control-allow-origin: https://sibu912.github.io" headers.txt
+          curl -sf -X POST http://localhost:8080/api/auth/login \
+            -H 'Content-Type: application/json' -d '{"username":"thandi","password":"Reviewer#2026"}' | grep -q token
+          echo "Container works"
+
+      - name: Show the logs
+        if: always()
+        run: docker logs loan-service 2>&1 | tail -40

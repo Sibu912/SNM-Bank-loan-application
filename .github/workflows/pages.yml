@@ -1,0 +1,76 @@
+# Publishes the website on GitHub Pages:
+#   https://sibu912.github.io/SNM-Bank-loan-application/         the loan form (index.html)
+#   https://sibu912.github.io/SNM-Bank-loan-application/admin/   the Angular admin
+#
+# The admin needs the address of the online backend. Set it once as a repository
+# variable called API_URL (Settings > Secrets and variables > Actions > Variables),
+# e.g. https://snm-bank-loans-sibu912.koyeb.app - see docs/DEPLOY.md.
+# Requires Settings > Pages > Source: "GitHub Actions".
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build the form and the admin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Put the backend address into the admin
+        working-directory: frontend
+        env:
+          API_URL: ${{ vars.API_URL }}
+        run: |
+          if [ -z "$API_URL" ]; then
+            echo "::warning::The API_URL variable is not set, so the online admin can't reach a backend yet (docs/DEPLOY.md)."
+          fi
+          sed -i "s|__API_URL__|${API_URL%/}|g" src/environments/environment.pages.ts
+
+      - name: Build the admin
+        working-directory: frontend
+        run: |
+          npm ci
+          npx ng build --configuration pages
+
+      - name: Put the site together
+        run: |
+          mkdir -p _site/admin
+          cp index.html "SNM Bank.png" favicon.ico _site/
+          cp -r frontend/dist/frontend/browser/. _site/admin/
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    name: Publish
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

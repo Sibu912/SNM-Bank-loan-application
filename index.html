@@ -945,10 +945,14 @@
     // On GitHub Pages nothing is shown, so the public form looks the same as before
   })();
 
-  // The "Reviewer login" link points at the local Angular admin unless ?admin= says otherwise
+  // The "Reviewer login" link: the local Angular admin on your PC, the online admin on
+  // GitHub Pages, or whatever ?admin= says
   const ADMIN_URL = new URLSearchParams(window.location.search).get('admin');
+  const adminLink = document.getElementById('adminLink');
   if (ADMIN_URL && /^https?:\/\//.test(ADMIN_URL)) {
-    document.getElementById('adminLink').href = ADMIN_URL.replace(/\/$/, '') + '/login';
+    adminLink.href = ADMIN_URL.replace(/\/$/, '') + '/login';
+  } else if (window.location.hostname.endsWith('github.io')) {
+    adminLink.href = 'admin/';
   }
 
   // The form shows labels; the API expects codes (docs/DESIGN.md, section 5.1)
@@ -1020,6 +1024,10 @@
     finishButton.disabled = true;
     finishButton.textContent = 'Submitting...';
     clearApiMessage();
+    // The free online server sleeps when nobody uses it; say so if saving takes a while
+    const wakingTimer = setTimeout(function () {
+      finishButton.textContent = 'Waking up the server... (up to a minute)';
+    }, 4000);
 
     try {
       const response = await fetch(API_BASE.replace(/\/+$/, '') + '/api/applications', {
@@ -1042,6 +1050,8 @@
       }
     } catch (error) {
       showApiMessage('Could not reach the loan service. Please check that it is running and try again.', []);
+    } finally {
+      clearTimeout(wakingTimer);
     }
 
     finishButton.disabled = false;

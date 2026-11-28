@@ -2,6 +2,7 @@ import { Component, inject, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Auth } from '../core/auth';
+import { environment } from '../../environments/environment';
 
 /**
  * Reviewer login. The username and password are checked by the backend against the
@@ -13,6 +14,9 @@ import { Auth } from '../core/auth';
   styleUrl: './login.css',
 })
 export class Login {
+  /** After this long we tell the user the server is waking up. */
+  static readonly SLOW_AFTER_MS = 4000;
+
   private readonly auth = inject(Auth);
   private readonly router = inject(Router);
 
@@ -20,13 +24,16 @@ export class Login {
   readonly returnUrl = input<string>();
   readonly reason = input<string>();
 
-  protected readonly loanFormUrl = 'https://sibu912.github.io/SNM-Bank-loan-application/';
+  protected readonly loanFormUrl = environment.loanFormUrl;
 
   protected readonly username = signal('');
   protected readonly password = signal('');
   protected readonly showPassword = signal(false);
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
+  /** True when a login takes long: the free online server is probably starting up. */
+  protected readonly slow = signal(false);
+  private slowTimer?: ReturnType<typeof setTimeout>;
 
   protected submit(event: Event): void {
     event.preventDefault();
@@ -37,13 +44,14 @@ export class Login {
 
     this.busy.set(true);
     this.error.set(null);
+    this.slowTimer = setTimeout(() => this.slow.set(true), Login.SLOW_AFTER_MS);
     this.auth.login(this.username().trim(), this.password()).subscribe({
       next: () => {
-        this.busy.set(false);
+        this.done();
         this.router.navigateByUrl(this.safeReturnUrl());
       },
       error: (error: unknown) => {
-        this.busy.set(false);
+        this.done();
         this.password.set('');
         this.error.set(
           error instanceof HttpErrorResponse && error.status === 0
@@ -52,6 +60,12 @@ export class Login {
         );
       },
     });
+  }
+
+  private done(): void {
+    clearTimeout(this.slowTimer);
+    this.busy.set(false);
+    this.slow.set(false);
   }
 
   /** Only allow paths inside this app, never a full URL to another site. */
