@@ -91,3 +91,19 @@ tbody tr:hover {
   font-size: 11px;
   letter-spacing: 1.5px;
 }
+
+.row-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.row-actions button {
+  padding: 6px 12px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.success {
+  margin: 0 0 16px;
+}

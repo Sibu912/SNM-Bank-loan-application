@@ -18,6 +18,9 @@
   @if (error()) {
     <p class="error" role="alert">{{ error() }}</p>
   }
+  @if (message()) {
+    <p class="success" role="status">{{ message() }}</p>
+  }
 
   @if (result(); as page) {
     @if (page.content.length === 0) {
@@ -34,6 +37,7 @@
               <th>Affordability</th>
               <th>Status</th>
               <th>Submitted</th>
+              <th>Change status</th>
             </tr>
           </thead>
           <tbody>
@@ -60,6 +64,28 @@
                   }}</span>
                 </td>
                 <td class="date">{{ application.createdAt | date: 'd MMM y, HH:mm' }}</td>
+                <td>
+                  <div class="row-actions">
+                    @for (next of nextStatuses[application.status]; track next) {
+                      <button
+                        type="button"
+                        [class]="'action-' + next"
+                        [disabled]="
+                          changing() === application.referenceNumber ||
+                          (next === 'APPROVED' && application.affordabilityResult === 'FAIL')
+                        "
+                        [title]="
+                          next === 'APPROVED' && application.affordabilityResult === 'FAIL'
+                            ? 'Failed the affordability check, so it cannot be approved'
+                            : ''
+                        "
+                        (click)="changeStatus(application, next)"
+                      >
+                        {{ statusAction(application.status, next) }}
+                      </button>
+                    }
+                  </div>
+                </td>
               </tr>
             }
           </tbody>

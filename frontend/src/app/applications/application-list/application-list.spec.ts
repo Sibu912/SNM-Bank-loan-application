@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { PAGE } from '../../core/test-data';
+import { PAGE, detail } from '../../core/test-data';
 import { ApplicationList } from './application-list';
 
 const BASE = 'http://localhost:8080/api/applications';
@@ -58,6 +58,26 @@ describe('ApplicationList', () => {
     await render();
 
     expect(element.textContent).toContain('No applications found.');
+  });
+
+  it('changes a status straight from the list and reloads', async () => {
+    http.expectOne((r) => r.url === BASE).flush(PAGE);
+    await render();
+
+    const buttons = Array.from(element.querySelectorAll<HTMLButtonElement>('.row-actions button'));
+    expect(buttons.map((b) => b.textContent?.trim())).toEqual(['Start review', 'Decline']);
+    buttons[0].click();
+
+    const request = http.expectOne(`${BASE}/SNM-2026-000001/status`);
+    expect(request.request.method).toBe('PATCH');
+    expect(request.request.body).toEqual({ status: 'UNDER_REVIEW', note: null });
+    request.flush(detail({ status: 'UNDER_REVIEW' }));
+    http.expectOne((r) => r.url === BASE).flush(PAGE);
+    await render();
+
+    expect(element.querySelector('.success')?.textContent).toContain(
+      'STATUS CHANGED TO UNDER REVIEW',
+    );
   });
 
   it('shows a message when the backend cannot be reached', async () => {

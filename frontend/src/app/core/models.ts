@@ -98,8 +98,8 @@ export const ALL_STATUSES: ApplicationStatus[] = [
 
 /** Same rules as ApplicationStatus.canMoveTo in the backend (docs/DESIGN.md 6.3). */
 export const NEXT_STATUSES: Record<ApplicationStatus, ApplicationStatus[]> = {
-  SUBMITTED: ['UNDER_REVIEW'],
-  UNDER_REVIEW: ['APPROVED', 'DECLINED'],
-  APPROVED: [],
-  DECLINED: [],
+  SUBMITTED: ['UNDER_REVIEW', 'DECLINED'],
+  UNDER_REVIEW: ['APPROVED', 'DECLINED', 'SUBMITTED'],
+  APPROVED: ['UNDER_REVIEW'],
+  DECLINED: ['UNDER_REVIEW'],
 };

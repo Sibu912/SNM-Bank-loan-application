@@ -61,12 +61,7 @@
   <section class="card">
     <h3>Change status</h3>
 
-    @if (nextStatuses().length === 0) {
-      <p class="empty">
-        This application is {{ statusLabels[app.status] | lowercase }}. No more changes are
-        possible.
-      </p>
-    } @else {
+    @if (nextStatuses().length > 0) {
       <p class="signed-in">
         Signed in as <strong>{{ auth.user()?.displayName }}</strong>. Your username is saved in the
         history.
@@ -92,14 +87,14 @@
             [disabled]="saving() || isBlocked(status)"
             (click)="changeStatus(status)"
           >
-            {{ statusActions[status] }}
+            {{ statusAction(app.status, status) }}
           </button>
         }
       </div>
 
       @if (app.affordabilityResult === 'FAIL' && app.status === 'UNDER_REVIEW') {
         <p class="hint">
-          This application failed the affordability check, so it can only be declined.
+          This application failed the affordability check, so it can't be approved.
         </p>
       }
     }

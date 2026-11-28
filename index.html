@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>SNM Bank</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏦</text></svg>">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
   <!-- Sci-fi theme (matches the Angular admin). Fonts: Orbitron (headings), Syncopate (buttons), Inter (text). -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +14,8 @@
      * SNM Bank loan form - sci-fi theme.
      * Only the look changed: every element and id is the same as before,
      * so the Blue Prism bot finds the fields exactly as it did.
-     * Icons are drawn with CSS masks, so no extra elements were added.
+     * Icons are drawn with CSS masks. The only added element is the
+     * "Reviewer login" link, which sits outside the form.
      */
     :root {
       --bg: #050a10;
@@ -587,6 +588,41 @@
       .address-grid { grid-template-columns: 1fr; }
     }
 
+    /* "Reviewer login" link to the Angular admin, top right like the admin's back link */
+    .admin-link {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 20px;
+      border: 1px solid var(--cyan);
+      background: rgba(0, 150, 255, 0.08);
+      clip-path: var(--cut-small);
+      color: var(--cyan);
+      font-family: var(--font-tech);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-decoration: none;
+      text-transform: uppercase;
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .admin-link:hover, .admin-link:focus-visible {
+      background: var(--cyan);
+      color: #00050a;
+      outline: none;
+    }
+    .admin-link svg { width: 14px; height: 14px; }
+    @media (max-width: 900px) {
+      .admin-link { position: static; width: max-content; margin: 0 0 14px auto; }
+    }
+    @media (max-width: 480px) {
+      .admin-link { margin: 12px 12px 0 auto; }
+    }
+
     /* Respect the "reduce motion" setting */
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation: none !important; transition: none !important; }
@@ -594,6 +630,14 @@
   </style>
 </head>
 <body>
+
+<!-- Link to the reviewer login of the Angular admin. ?admin=<url> changes where it points. -->
+<a class="admin-link" id="adminLink" href="http://localhost:4200/login">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+    <rect x="4" y="11" width="16" height="10" rx="1"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+  </svg>
+  Reviewer login
+</a>
 
 <div class="survey-container" id="app">
   <!-- Header -->
@@ -859,6 +903,12 @@
   // Without ?api= the form works exactly as before (GitHub Pages and the Blue Prism bot).
   // ---------------------------------------------------------------------------
   const API_BASE = new URLSearchParams(window.location.search).get('api');
+
+  // The "Reviewer login" link points at the local Angular admin unless ?admin= says otherwise
+  const ADMIN_URL = new URLSearchParams(window.location.search).get('admin');
+  if (ADMIN_URL && /^https?:\/\//.test(ADMIN_URL)) {
+    document.getElementById('adminLink').href = ADMIN_URL.replace(/\/$/, '') + '/login';
+  }
 
   // The form shows labels; the API expects codes (docs/DESIGN.md, section 5.1)
   const LOAN_AMOUNT_CODES = {

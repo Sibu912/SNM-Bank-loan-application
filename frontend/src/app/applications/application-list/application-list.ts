@@ -2,17 +2,19 @@ import { DatePipe } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { errorMessage } from '../../core/error-message';
-import { AMOUNT_LABELS, PURPOSE_LABELS, STATUS_LABELS } from '../../core/labels';
+import { AMOUNT_LABELS, PURPOSE_LABELS, STATUS_LABELS, statusAction } from '../../core/labels';
 import { LoanApplicationApi } from '../../core/loan-application-api';
 import {
   ALL_STATUSES,
   ApplicationStatus,
   ApplicationSummary,
+  NEXT_STATUSES,
   PageResponse,
 } from '../../core/models';
 
 /**
  * The list of applications, newest first, with a status filter and paging.
+ * Each row has quick buttons to change its status. To add a note, open the application.
  */
 @Component({
   selector: 'app-application-list',
@@ -29,12 +31,17 @@ export class ApplicationList implements OnInit {
   protected readonly statusLabels = STATUS_LABELS;
   protected readonly purposeLabels = PURPOSE_LABELS;
   protected readonly amountLabels = AMOUNT_LABELS;
+  protected readonly nextStatuses = NEXT_STATUSES;
+  protected readonly statusAction = statusAction;
 
   protected readonly statusFilter = signal<ApplicationStatus | null>(null);
   protected readonly page = signal(0);
   protected readonly result = signal<PageResponse<ApplicationSummary> | null>(null);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly message = signal<string | null>(null);
+  /** Reference of the row whose status is being changed, so its buttons are disabled. */
+  protected readonly changing = signal<string | null>(null);
 
   ngOnInit(): void {
     this.load();
@@ -54,6 +61,25 @@ export class ApplicationList implements OnInit {
   protected nextPage(): void {
     this.page.update((page) => page + 1);
     this.load();
+  }
+
+  protected changeStatus(application: ApplicationSummary, status: ApplicationStatus): void {
+    this.changing.set(application.referenceNumber);
+    this.error.set(null);
+    this.message.set(null);
+    this.api.changeStatus(application.referenceNumber, { status, note: null }).subscribe({
+      next: (updated) => {
+        this.changing.set(null);
+        this.message.set(
+          `${updated.referenceNumber} // STATUS CHANGED TO ${STATUS_LABELS[updated.status].toUpperCase()}`,
+        );
+        this.load();
+      },
+      error: (error) => {
+        this.changing.set(null);
+        this.error.set(errorMessage(error));
+      },
+    });
   }
 
   protected load(): void {

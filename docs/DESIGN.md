@@ -177,16 +177,20 @@ stateDiagram-v2
     SUBMITTED --> UNDER_REVIEW : reviewer picks it up
     UNDER_REVIEW --> APPROVED : only if affordability is PASS
     UNDER_REVIEW --> DECLINED
-    APPROVED --> [*]
-    DECLINED --> [*]
+    SUBMITTED --> DECLINED : declined without review
+    UNDER_REVIEW --> SUBMITTED : sent back
+    APPROVED --> UNDER_REVIEW : reopened
+    DECLINED --> UNDER_REVIEW : reopened
 ```
 
 | From | Allowed next status |
 |------|---------------------|
-| `SUBMITTED` | `UNDER_REVIEW` |
-| `UNDER_REVIEW` | `APPROVED`, `DECLINED` |
-| `APPROVED` | none (final) |
-| `DECLINED` | none (final) |
+| `SUBMITTED` | `UNDER_REVIEW` (start review), `DECLINED` |
+| `UNDER_REVIEW` | `APPROVED`, `DECLINED`, `SUBMITTED` (send back) |
+| `APPROVED` | `UNDER_REVIEW` (reopen) |
+| `DECLINED` | `UNDER_REVIEW` (reopen) |
+
+An application can't be approved without a review first, so a reopened decision goes back through `UNDER_REVIEW`. The history table keeps every change, so a reopened decision is never lost.
 
 Rules:
 

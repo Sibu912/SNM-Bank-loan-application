@@ -55,7 +55,7 @@ describe('ApplicationDetail', () => {
   it('only offers the next allowed status and shows who is signed in', async () => {
     await open(detail({ status: 'SUBMITTED' }));
 
-    expect(buttons().map((b) => b.textContent?.trim())).toEqual(['Start review']);
+    expect(buttons().map((b) => b.textContent?.trim())).toEqual(['Start review', 'Decline']);
     expect(buttons()[0].disabled).toBe(false);
     expect(element.querySelector('.signed-in')?.textContent).toContain('Thandi Mokoena');
   });
@@ -74,7 +74,11 @@ describe('ApplicationDetail', () => {
     http.expectOne(`${BASE}/history`).flush(HISTORY);
     await render();
 
-    expect(buttons().map((b) => b.textContent?.trim())).toEqual(['Approve', 'Decline']);
+    expect(buttons().map((b) => b.textContent?.trim())).toEqual([
+      'Approve',
+      'Decline',
+      'Send back',
+    ]);
     expect(element.querySelector('.success')?.textContent).toContain(
       'STATUS CHANGED TO UNDER REVIEW',
     );
@@ -100,16 +104,26 @@ describe('ApplicationDetail', () => {
 
   it('does not allow approving an application that failed the affordability check', async () => {
     await open(detail({ status: 'UNDER_REVIEW', affordabilityResult: 'FAIL' }));
-    const [approve, decline] = buttons();
+    const [approve, decline, sendBack] = buttons();
     expect(approve.disabled).toBe(true);
     expect(decline.disabled).toBe(false);
-    expect(element.querySelector('.hint')?.textContent).toContain('can only be declined');
+    expect(sendBack.disabled).toBe(false);
+    expect(element.querySelector('.hint')?.textContent).toContain("can't be approved");
   });
 
-  it('shows no buttons for a final status', async () => {
+  it('lets a reviewer reopen a decided application', async () => {
     await open(detail({ status: 'APPROVED' }));
+    expect(buttons().map((b) => b.textContent?.trim())).toEqual(['Reopen']);
 
-    expect(buttons()).toHaveLength(0);
-    expect(element.textContent).toContain('No more changes are possible');
+    buttons()[0].click();
+    const request = http.expectOne(`${BASE}/status`);
+    expect(request.request.body).toEqual({ status: 'UNDER_REVIEW', note: null });
+    request.flush(detail({ status: 'UNDER_REVIEW' }));
+    http.expectOne(`${BASE}/history`).flush(HISTORY);
+    await render();
+
+    expect(element.querySelector('.success')?.textContent).toContain(
+      'STATUS CHANGED TO UNDER REVIEW',
+    );
   });
 });

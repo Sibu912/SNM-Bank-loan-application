@@ -27,13 +27,19 @@ export const STATUS_LABELS: Record<ApplicationStatus, string> = {
   DECLINED: 'Declined',
 };
 
-/** Text for the button that moves an application to this status. */
-export const STATUS_ACTIONS: Record<ApplicationStatus, string> = {
-  SUBMITTED: 'Submit',
-  UNDER_REVIEW: 'Start review',
-  APPROVED: 'Approve',
-  DECLINED: 'Decline',
-};
+/** Text for the button that moves an application from one status to the next. */
+export function statusAction(from: ApplicationStatus, to: ApplicationStatus): string {
+  switch (to) {
+    case 'UNDER_REVIEW':
+      return from === 'SUBMITTED' ? 'Start review' : 'Reopen';
+    case 'APPROVED':
+      return 'Approve';
+    case 'DECLINED':
+      return 'Decline';
+    case 'SUBMITTED':
+      return 'Send back';
+  }
+}
 
 export const PURPOSE_LABELS: Record<LoanPurpose, string> = {
   VEHICLE: 'Vehicle',

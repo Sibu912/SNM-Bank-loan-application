@@ -13,14 +13,18 @@ class ApplicationStatusTest {
             "SUBMITTED,    UNDER_REVIEW, true",
             "UNDER_REVIEW, APPROVED,     true",
             "UNDER_REVIEW, DECLINED,     true",
+            "SUBMITTED,    DECLINED,     true",
+            "UNDER_REVIEW, SUBMITTED,    true",
+            "APPROVED,     UNDER_REVIEW, true",
+            "DECLINED,     UNDER_REVIEW, true",
             // not allowed
             "SUBMITTED,    APPROVED,     false",
-            "SUBMITTED,    DECLINED,     false",
             "SUBMITTED,    SUBMITTED,    false",
-            "UNDER_REVIEW, SUBMITTED,    false",
+            "UNDER_REVIEW, UNDER_REVIEW, false",
             "APPROVED,     DECLINED,     false",
-            "APPROVED,     UNDER_REVIEW, false",
-            "DECLINED,     APPROVED,     false"
+            "APPROVED,     SUBMITTED,    false",
+            "DECLINED,     APPROVED,     false",
+            "DECLINED,     SUBMITTED,    false"
     })
     void knowsWhichStatusChangesAreAllowed(ApplicationStatus from, ApplicationStatus to, boolean allowed) {
         assertThat(from.canMoveTo(to)).isEqualTo(allowed);

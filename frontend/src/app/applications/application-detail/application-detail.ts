@@ -1,4 +1,4 @@
-import { DatePipe, DecimalPipe, LowerCasePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Auth } from '../../core/auth';
@@ -8,9 +8,9 @@ import {
   GENDER_LABELS,
   INCOME_LABELS,
   PURPOSE_LABELS,
-  STATUS_ACTIONS,
   STATUS_LABELS,
   TITLE_LABELS,
+  statusAction,
 } from '../../core/labels';
 import { LoanApplicationApi } from '../../core/loan-application-api';
 import {
@@ -26,7 +26,7 @@ import {
  */
 @Component({
   selector: 'app-application-detail',
-  imports: [RouterLink, DatePipe, DecimalPipe, LowerCasePipe],
+  imports: [RouterLink, DatePipe, DecimalPipe],
   templateUrl: './application-detail.html',
   styleUrl: './application-detail.css',
 })
@@ -38,7 +38,7 @@ export class ApplicationDetail implements OnInit {
   readonly ref = input.required<string>();
 
   protected readonly statusLabels = STATUS_LABELS;
-  protected readonly statusActions = STATUS_ACTIONS;
+  protected readonly statusAction = statusAction;
   protected readonly purposeLabels = PURPOSE_LABELS;
   protected readonly amountLabels = AMOUNT_LABELS;
   protected readonly incomeLabels = INCOME_LABELS;
