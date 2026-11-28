@@ -128,7 +128,7 @@ Backend tests use the **`snm_loans_test`** database (`src/test/resources/applica
    `http://127.0.0.1:5500/index.html?api=http://localhost:8080`
 4. Fill in the form. The thank-you page shows your reference number.
 
-Without `?api=...` the form works exactly as before, so GitHub Pages and the Blue Prism bot aren't affected.
+Opened from localhost or 127.0.0.1, the form saves to `http://localhost:8080` even without `?api=`. Anywhere else (GitHub Pages, the Blue Prism bot) it only saves when `?api=...` is in the URL, so those work exactly as before. Use `?api=off` to stop saving locally.
 
 ## 9. Run the Angular admin
 

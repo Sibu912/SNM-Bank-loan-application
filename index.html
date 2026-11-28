@@ -899,10 +899,15 @@
 
   // ---------------------------------------------------------------------------
   // Optional connection to the SNM Bank loan API (backend/).
-  // Open the page as  index.html?api=http://localhost:8080  to save applications.
-  // Without ?api= the form works exactly as before (GitHub Pages and the Blue Prism bot).
+  // On your own PC (localhost / 127.0.0.1) the form saves to http://localhost:8080.
+  // Anywhere else (GitHub Pages, the Blue Prism bot) it works exactly as before,
+  // unless the page is opened as  index.html?api=<url>.
+  // ?api=off turns saving off on your PC too.
   // ---------------------------------------------------------------------------
-  const API_BASE = new URLSearchParams(window.location.search).get('api');
+  const API_PARAM = new URLSearchParams(window.location.search).get('api');
+  const RUNNING_LOCALLY = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+  const API_BASE = API_PARAM === 'off' ? null
+    : API_PARAM || (RUNNING_LOCALLY ? 'http://localhost:8080' : null);
 
   // The "Reviewer login" link points at the local Angular admin unless ?admin= says otherwise
   const ADMIN_URL = new URLSearchParams(window.location.search).get('admin');

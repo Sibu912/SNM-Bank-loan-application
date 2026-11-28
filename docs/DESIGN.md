@@ -223,7 +223,7 @@ REST errors use Spring's `ProblemDetail` format (RFC 9457). There are examples i
 | # | Decision | Why |
 |---|----------|-----|
 | D1 | Backend and frontend live in the **same repo** as the form (`backend/`, `frontend/`) | The whole story is in one place. GitHub Pages still serves `index.html` from the root. |
-| D2 | The form calls the API **only when the page URL has `?api=...`** | The public GitHub Pages form and the Blue Prism bot keep working exactly as before. To test locally, use `index.html?api=http://localhost:8080`. |
+| D2 | The form calls the API **only when it runs on your own PC** (localhost or 127.0.0.1, which use `http://localhost:8080`) **or the URL has `?api=...`** | The public GitHub Pages form and the Blue Prism bot keep working exactly as before. `?api=off` turns saving off locally. |
 | D3 | Don't rename any element IDs in `index.html` | The Blue Prism bot finds fields by their IDs. |
 | D4 | PostgreSQL for development **and** tests (a separate `snm_loans_test` database), **Flyway** for the schema, Hibernate in `validate` mode | Tests run on the same database engine as the real app, so SQL that only works on one database can't slip through. The schema is versioned SQL that can be reviewed. Hibernate only checks the tables; it never changes them. |
 | D5 | **Contract-first SOAP**: write the XSD first, then generate the Java classes with JAXB | Partners agree on the XML contract before any code is written, which is how enterprise integrations usually work. |
