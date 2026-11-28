@@ -8,13 +8,18 @@ It started as a two-page web form. It now has a **Java backend**, a **SOAP inter
 
 > **Status:** version 1 is complete. See the [roadmap](#roadmap) for ideas for later.
 
-**Live form:** https://sibu912.github.io/SNM-Bank-loan-application/
+**Live form:** https://sibu912.github.io/SNM-Bank-loan-application/  
+**Demo video:** https://www.youtube.com/watch?v=EeXkM3Id9KE
 
 ---
 
 ### Demo
 
-An applicant fills in the form and gets a reference number. A reviewer then logs in, starts the review from the list and approves the application. Every change is saved in its history.
+**[Watch the 4-minute demo with voice-over on YouTube](https://www.youtube.com/watch?v=EeXkM3Id9KE)**. It covers what the app does, the tech stack and how the parts fit together, then a full run through the form and the admin.
+
+[![SNM Bank demo video](docs/images/demo-thumbnail.jpg)](https://www.youtube.com/watch?v=EeXkM3Id9KE)
+
+Quick preview: an applicant fills in the form and gets a reference number. A reviewer then logs in, starts the review from the list and approves the application. Every change is saved in its history.
 
 ![Demo: submitting a loan application and approving it in the admin](docs/images/demo.gif)
 
