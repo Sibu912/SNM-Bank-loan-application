@@ -588,6 +588,27 @@
       .address-grid { grid-template-columns: 1fr; }
     }
 
+    /* Shows whether the form saves to the loan service or only runs as a demo */
+    .connection-status {
+      margin-top: 8px;
+      font-size: 9px;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+    }
+    .connection-status:empty { display: none; }
+    .connection-status::before {
+      content: '';
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      margin-right: 7px;
+      border-radius: 50%;
+      background: var(--amber);
+      box-shadow: 0 0 6px var(--amber);
+    }
+    .connection-status.live { color: var(--green); }
+    .connection-status.live::before { background: var(--green); box-shadow: 0 0 6px var(--green); }
+
     /* "Reviewer login" link to the Angular admin, top right like the admin's back link */
     .admin-link {
       position: fixed;
@@ -811,6 +832,7 @@
   <!-- Footer -->
   <div class="survey-footer">
     Powered by <a href="#">SNM Bank</a>
+    <div class="connection-status" id="connectionStatus"></div>
   </div>
 </div>
 
@@ -908,6 +930,20 @@
   const RUNNING_LOCALLY = ['localhost', '127.0.0.1'].includes(window.location.hostname);
   const API_BASE = API_PARAM === 'off' ? null
     : API_PARAM || (RUNNING_LOCALLY ? 'http://localhost:8080' : null);
+
+  // Say in the footer whether applications are saved or not
+  (function showConnectionStatus() {
+    const status = document.getElementById('connectionStatus');
+    if (API_BASE) {
+      status.className = 'connection-status live';
+      status.textContent = 'Live // saving to ' + API_BASE.replace(/^https?:\/\//, '').replace(/\/+$/, '');
+    } else if (window.location.protocol === 'file:') {
+      status.textContent = 'Demo mode // not saved. Open http://127.0.0.1:5500 to save';
+    } else if (RUNNING_LOCALLY) {
+      status.textContent = 'Demo mode // not saved (?api=off)';
+    }
+    // On GitHub Pages nothing is shown, so the public form looks the same as before
+  })();
 
   // The "Reviewer login" link points at the local Angular admin unless ?admin= says otherwise
   const ADMIN_URL = new URLSearchParams(window.location.search).get('admin');
