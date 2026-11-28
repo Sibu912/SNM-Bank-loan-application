@@ -1,5 +1,7 @@
 # Setup – running the project locally (Windows)
 
+> **Just want to try it?** With Docker installed, `docker compose --profile demo up --build` runs everything (database, backend, admin and form) with no other setup. See the [README](../README.md#running-it-locally). This guide is for running each part yourself, which is how you develop and debug it.
+
 The commands below are for **PowerShell**.
 
 ---

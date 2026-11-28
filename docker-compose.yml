@@ -1,0 +1,70 @@
+# Runs the whole SNM Bank project with one command. Only Docker is needed:
+#
+#   docker compose up --build
+#
+# Then open:
+#   Loan form   http://localhost:5500           (saves to the backend)
+#   Admin       http://localhost:4200           (log in as thandi / Reviewer#2026)
+#   Backend     http://localhost:8080           (REST API; SOAP contract at /ws/loans.wsdl)
+#
+# Add 10 demo applications as well:  docker compose --profile demo up --build
+#
+# Stop with Ctrl+C. "docker compose down -v" also deletes the database.
+# These settings are for trying the project locally only.
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: snm_loans
+      POSTGRES_USER: snm_app
+      POSTGRES_PASSWORD: snm_local_password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U snm_app -d snm_loans"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://snm_app:snm_local_password@db:5432/snm_loans
+      JWT_SECRET: local-docker-demo-secret-not-for-real-use
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  admin:
+    build: ./frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+
+  # Optional: "docker compose --profile demo up --build" also adds 10 demo applications
+  seed:
+    image: curlimages/curl
+    profiles: ["demo"]
+    volumes:
+      - ./scripts/seed-demo-data.sh:/seed.sh:ro
+    entrypoint: ["sh", "/seed.sh", "http://backend:8080"]
+    depends_on:
+      - backend
+
+  form:
+    image: nginx:alpine
+    volumes:
+      - ./index.html:/usr/share/nginx/html/index.html:ro
+      - ./SNM Bank.png:/usr/share/nginx/html/SNM Bank.png:ro
+      - ./favicon.ico:/usr/share/nginx/html/favicon.ico:ro
+    ports:
+      - "5500:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

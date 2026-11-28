@@ -120,3 +120,38 @@ jobs:
       - name: Show the logs
         if: always()
         run: docker logs loan-service 2>&1 | tail -40
+
+  compose:
+    name: Docker Compose (whole app, one command)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start everything with the demo data
+        run: docker compose --profile demo up -d --build
+
+      - name: Wait for the demo data to load
+        run: |
+          docker compose wait seed
+          docker compose logs seed
+
+      - name: Check the form, the admin and the API
+        run: |
+          curl -sf http://localhost:5500/ | grep -q "SNM Bank"
+          curl -sf http://localhost:4200/ | grep -q "<app-root"
+          curl -sf http://localhost:4200/applications/SNM-2026-000001 | grep -q "<app-root"
+          curl -sf -o /dev/null -D - -X OPTIONS http://localhost:8080/api/applications \
+            -H 'Origin: http://localhost:5500' -H 'Access-Control-Request-Method: POST' \
+            | grep -i "access-control-allow-origin: http://localhost:5500"
+          TOKEN=$(curl -sf -X POST http://localhost:8080/api/auth/login -H 'Content-Type: application/json' \
+            -d '{"username":"thandi","password":"Reviewer#2026"}' | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
+          curl -sf http://localhost:8080/api/applications -H "Authorization: Bearer $TOKEN" | grep -q '"totalElements":10'
+          echo "Everything works with one command"
+
+      - name: Show the logs
+        if: always()
+        run: docker compose logs --tail 40
+
+      - name: Stop
+        if: always()
+        run: docker compose down -v

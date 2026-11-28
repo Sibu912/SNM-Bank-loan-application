@@ -142,6 +142,28 @@ Run them with `.\mvnw.cmd verify` in `backend` and `npm test -- --watch=false` i
 
 ## Running it locally
 
+### The quick way: Docker (one command)
+
+With [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed, nothing else is needed (no Java, Node or PostgreSQL):
+
+```bash
+git clone https://github.com/Sibu912/SNM-Bank-loan-application.git
+cd SNM-Bank-loan-application
+docker compose --profile demo up --build
+```
+
+The first build takes a few minutes. Then open:
+
+| What | Address |
+|------|---------|
+| Loan form | http://localhost:5500 |
+| Admin | http://localhost:4200 (log in as `thandi` / `Reviewer#2026`) |
+| REST API | http://localhost:8080 (SOAP contract at http://localhost:8080/ws/loans.wsdl) |
+
+`--profile demo` adds 10 sample applications to review; leave it out to start empty. Stop with Ctrl+C, and run `docker compose down -v` to delete the database.
+
+### Without Docker
+
 See [docs/SETUP.md](docs/SETUP.md). The short version:
 
 ```powershell
