@@ -12,6 +12,12 @@ It started as a two-page web form. It now has a **Java backend**, a **SOAP inter
 
 ---
 
+### Demo
+
+An applicant fills in the form and gets a reference number. A reviewer then logs in, starts the review from the list and approves the application. Every change is saved in its history.
+
+![Demo: submitting a loan application and approving it in the admin](docs/images/demo.gif)
+
 ![Reviewer login](docs/images/admin-login.jpg)
 
 ## What it does
